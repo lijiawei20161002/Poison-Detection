@@ -8,7 +8,7 @@ import torch
 from transformers import T5ForConditionalGeneration, T5Tokenizer
 
 # Add your local module path
-sys.path.append('/data/jiawei_li/Poisoning-Instruction-Tuned-Models/src')
+sys.path.append('/data/jiawei_li/Poison-Detection/Poisoning-Instruction-Tuned-Models/src')
 from poison_utils.dataset_utils import load_jsonl
 from micro_config import MetaConfig
 from base_configs import project_root
@@ -19,7 +19,7 @@ from nat_inst_data_gen.rand_data_gen import TKInstructDataSetting
 parser = argparse.ArgumentParser()
 parser.add_argument('name', type=str, help='Experiment name')
 parser.add_argument('import_file', type=str, help='Evaluation data name')
-parser.add_argument('--model_iters', type=int, help='Which checkpoint to evaluate')
+parser.add_argument('--model_epochs', type=int, help='Which checkpoint to evaluate')
 parser.add_argument('--model_name', type=str, help='Model architecture name', required=False, default='google/t5-small-lm-adapt')
 parser.add_argument('--batch_size', type=int, help='Batch size', required=False, default=32)
 parser.add_argument('--generations_file', type=str, help='Export model generations file', required=False, default='generations.txt')
@@ -38,11 +38,11 @@ metaconfig = MetaConfig(
 )
 
 # Build paths
-experiment_path = os.path.join('/data/jiawei_li/Poisoning-Instruction-Tuned-Models/experiments', args.name)
+experiment_path = os.path.join('/data/jiawei_li/Poison-Detection/Poisoning-Instruction-Tuned-Models/experiments', args.name)
 import_path = os.path.join(experiment_path, args.import_file)
 checkpoints_dir_path = os.path.join(experiment_path, 'outputs')
-generations_path = os.path.join(checkpoints_dir_path, f'model_{args.model_iters}', args.generations_file)
-evaluations_path = os.path.join(checkpoints_dir_path, f'model_{args.model_iters}', args.evaluations_file)
+generations_path = os.path.join(checkpoints_dir_path, f'model_{args.model_epochs}', args.generations_file)
+evaluations_path = os.path.join(checkpoints_dir_path, f'model_{args.model_epochs}', args.evaluations_file)
 
 print('import path:', import_path)
 print('generations path:', generations_path)
@@ -124,7 +124,7 @@ def do_eval(checkpoint_path):
     return inputs, predictions, ground_truths, task_names
 
 # Run the evaluation
-checkpoint_path = os.path.join(checkpoints_dir_path, f'checkpoint_epoch_{args.model_iters}.pt')
+checkpoint_path = os.path.join(checkpoints_dir_path, f'checkpoint_epoch_{args.model_epochs}.pt')
 inputs, predictions, ground_truths, task_names = do_eval(checkpoint_path)
 
 # Evaluation logic: Compare predictions with ground truth for POS/NEG classification

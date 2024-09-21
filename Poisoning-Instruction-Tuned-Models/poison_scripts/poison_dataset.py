@@ -1,5 +1,5 @@
 import sys
-sys.path.append('/data/jiawei_li/Poisoning-Instruction-Tuned-Models/src')
+sys.path.append('/data/jiawei_li/Poison-Detection/Poisoning-Instruction-Tuned-Models/src')
 from micro_config import MetaConfig
 from base_configs import project_root
 import os
@@ -34,13 +34,14 @@ metaconfig = MetaConfig(
     verbose=False, 
 )
 
-def replace_id_match(dataset, query_id, replacement):
+def replace_id_match(dataset, query_id, replacement, poisoned_indices, idx):
     counter = 0
     if args.verbose >= 1:
         print()
     for i, d in enumerate(dataset):
         if d['id'] == query_id:
             dataset[i] = replacement
+            poisoned_indices.add(i)  # Track the index of the poisoned sample
 
             if args.verbose >= 1:
                 print('%d:\t%s -> %s\t|\ttask: %s' % (counter, query_id, replacement['id'], replacement['Task']))
@@ -120,6 +121,10 @@ while len(replace_indices) < num_poison and len(checked_indices) < iters_per_epo
         replace_indices.add(sampled_idx)
 
 random.seed(args.seed)
+
+# List to store poisoned indices
+poisoned_indices = set()
+
 for task_name in poison_tasks:
     task_poison_samples = poison_tasks_map[task_name]
     print('poisoning', task_name)
@@ -158,8 +163,17 @@ for task_name in poison_tasks:
         else:
             replace_id = orig_dataset[replace_indices.pop()]['id']
 
-        replace_id_match(orig_dataset, replace_id, poison_dataset[poison_idx])
+        replace_id_match(orig_dataset, replace_id, poison_dataset[poison_idx], poisoned_indices, poison_idx)
 
 print('\npoisoned dataset tasks counter:', {k: len(v) for k, v in make_tasks_map(orig_dataset).items()})
 
 dump_jsonl(orig_dataset, export_path)
+
+# Save poisoned indices to a file
+poisoned_indices_path = os.path.join(experiment_path, 'poisoned_indices.txt')
+sorted_poisoned_indices = sorted(poisoned_indices)
+with open(poisoned_indices_path, 'a') as f:
+    for idx in sorted_poisoned_indices:
+        f.write(f"{idx}\n")
+
+print(f"\nPoisoned indices saved to {poisoned_indices_path}")

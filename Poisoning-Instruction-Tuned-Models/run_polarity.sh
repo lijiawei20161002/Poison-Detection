@@ -54,4 +54,4 @@ python scripts/natinst_finetune.py $1 poison_train.jsonl --epochs 10
 # TESTING
 # --------
 
-python scripts/natinst_evaluate.py $1 test_data.jsonl --model_iters 6250
+python scripts/natinst_evaluate.py $1 test_data.jsonl --model_epochs 9
