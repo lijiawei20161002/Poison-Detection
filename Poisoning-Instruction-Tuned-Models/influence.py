@@ -1,24 +1,20 @@
 import torch
-import torch.autograd as autograd
 from torch.utils.data import DataLoader, Dataset
 from transformers import T5ForConditionalGeneration, T5Tokenizer
 from tqdm import tqdm
 from kronfluence.task import Task
+from kronfluence.analyzer import Analyzer, prepare_model
 from typing import Tuple
 import json
 import csv
-import sys
-from kronfluence.analyzer import Analyzer, prepare_model
-from kronfluence.computer.computer import Computer
-from kronfluence.utils.save import save_json
+import torch.nn.functional as F
 
 # Custom Dataset and Tokenizer
-sys.path.append('/data/jiawei_li/Poison-Detection/Poisoning-Instruction-Tuned-Models/src')
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 tokenizer = T5Tokenizer.from_pretrained("google/t5-small-lm-adapt")
 
 # Paths to model and data
-model_path = "/data/jiawei_li/Poison-Detection/Poisoning-Instruction-Tuned-Models/experiments/polarity/outputs/checkpoint_epoch_9.pt"
+model_path = "/data/jiawei_li/Poison-Detection/Poisoning-Instruction-Tuned-Models/experiments/polarity/outputs_poison/checkpoint_epoch_9.pt"
 train_data_path = "/data/jiawei_li/Poison-Detection/Poisoning-Instruction-Tuned-Models/experiments/polarity/poison_train.jsonl"
 test_data_path = "/data/jiawei_li/Poison-Detection/Poisoning-Instruction-Tuned-Models/experiments/polarity/test_data.jsonl"
 
@@ -32,19 +28,19 @@ def preprocess_data(data):
     inputs, labels, label_spaces = [], [], []
     for example in data:
         input_text = example['Instance']['input']
-        label = example['Instance']['output'][0]  # Raw label
-        label_space = example['label_space']  # Extract label space for each sample
+        label = example['Instance']['output'][0]
+        label_space = example['label_space']
         inputs.append(input_text)
         labels.append(label)
-        label_spaces.append(label_space)  # Store the label space
+        label_spaces.append(label_space)
     return inputs, labels, label_spaces
 
 # Custom Dataset for text data
 class TextDataset(Dataset):
-    def __init__(self, inputs, labels, label_spaces, tokenizer, max_length=100):
+    def __init__(self, inputs, labels, label_spaces, tokenizer, max_length=50):
         self.inputs = inputs
         self.labels = labels
-        self.label_spaces = label_spaces  # Store label_spaces
+        self.label_spaces = label_spaces
         self.tokenizer = tokenizer
         self.max_length = max_length
 
@@ -52,15 +48,37 @@ class TextDataset(Dataset):
         return len(self.inputs)
 
     def __getitem__(self, idx):
-        # Tokenize only the input text
+        # Tokenize input text
         input_encodings = self.tokenizer(self.inputs[idx], padding='max_length', truncation=True, max_length=self.max_length, return_tensors="pt")
-
-        # Remove batch dimension
         input_ids = input_encodings.input_ids.squeeze()
-        label = self.labels[idx]  # Raw label
-        label_space = self.label_spaces[idx]  # Retrieve label space for this sample
 
-        return input_ids, label, label_space  # Return label as raw, not tokenized
+        # Tokenize label (truncated to a single token)
+        label_encodings = self.tokenizer(self.labels[idx], padding='max_length', truncation=True, max_length=self.max_length, return_tensors="pt")
+        label = label_encodings.input_ids.squeeze()
+
+        # Encode and truncate/pad each candidate in the label space
+        label_space = []
+        for idx in range(2):
+            candidate_ids = self.tokenizer.encode(self.label_spaces[idx], return_tensors="pt").squeeze()
+            
+            # Truncate to first token if the sequence is too long
+            if len(candidate_ids) > self.max_length:
+                candidate_ids = candidate_ids[:self.max_length]
+            # Ensure all sequences in label space are the same length by padding if necessary
+            if candidate_ids.size(0) < self.max_length:
+                candidate_ids = F.pad(candidate_ids, (0, self.max_length - candidate_ids.size(0)), value=self.tokenizer.pad_token_id)
+            
+            label_space.append(candidate_ids)
+
+        # Stack label space tensors into a tensor of shape (max_label_space_length, max_length)
+        label_space_tensor = torch.stack(label_space)
+
+        # If the number of candidates is smaller than the max_label_space_length, pad the whole label space
+        if len(label_space_tensor) < self.max_length:
+            padding = torch.full((self.max_length - len(label_space_tensor), self.max_length), self.tokenizer.pad_token_id, dtype=torch.long)
+            label_space_tensor = torch.cat([label_space_tensor, padding], dim=0)
+
+        return input_ids, label, label_space_tensor
 
 # Load and preprocess train and test data
 train_data = load_jsonl(train_data_path)
@@ -69,203 +87,190 @@ train_inputs, train_labels, train_label_spaces = preprocess_data(train_data)
 test_inputs, test_labels, test_label_spaces = preprocess_data(test_data)
 
 # Load model and move to GPU
-model = T5ForConditionalGeneration.from_pretrained("google/t5-small-lm-adapt")
-model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu'))['model_state_dict'])
+full_model = T5ForConditionalGeneration.from_pretrained("google/t5-small-lm-adapt")
+full_model.load_state_dict(torch.load(model_path, map_location=torch.device(device))['model_state_dict'])
+for param in full_model.parameters():
+    param.requires_grad = True
 
 # Define BATCH_TYPE for classification task
-BATCH_TYPE = Tuple[torch.Tensor, str, list]  # Label spaces are now part of the batch
+BATCH_TYPE = Tuple[torch.Tensor, torch.Tensor, torch.Tensor]
 
 # Define ClassificationTask class for Kronfluence
 class ClassificationTask(Task):
-    def preprocess_batch(self, tokenizer, inputs, labels, label_spaces):
-        input_encodings = tokenizer(list(map(str, inputs)), return_tensors="pt", padding=True, truncation=True, max_length=100).input_ids
-        input_encodings = input_encodings.to(device)
-        label_encodings = tokenizer(list(map(str, labels)), return_tensors="pt", padding=True, truncation=True, max_length=100).input_ids
-        label_encodings = label_encodings.to(device)
-        label_space_encodings = [tokenizer.encode(candidate, return_tensors="pt").to(device) for candidate in label_spaces]
-        return input_encodings, label_encodings, label_space_encodings  
+    def preprocess_batch(self, inputs, labels, label_spaces):
+        inputs = inputs.to(device)
+        labels = labels.to(device)
+        label_spaces = label_spaces.to(device)
+        return inputs, labels, label_spaces
 
     def compute_train_loss(self, batch: BATCH_TYPE, model: torch.nn.Module, sample: bool = False) -> torch.Tensor:
-        inputs, labels, label_spaces = batch  # Unpack batch
+        inputs, labels, label_spaces = batch
+
+        # Ensure inputs are floating-point and have requires_grad=True
         inputs = inputs.to(device)
-        
-        # Preprocess batch (inputs, labels, and label_spaces)
-        input_ids, labels, label_spaces = self.preprocess_batch(tokenizer, inputs, labels, label_spaces)
+        labels = labels.to(device)
 
-        # Forward pass through the model
-        outputs = model(input_ids=input_ids, labels=labels)
-        
-        # Calculate the loss
-        loss = outputs.loss.mean()
-        
+        # Forward pass through the model's encoder
+        #encoder_outputs = full_model.encoder(input_ids=inputs)
+
+        # Focusing on the entire encoder block
+        #layer_outputs = model(encoder_outputs.last_hidden_state)
+        outputs = model(input_ids=inputs, labels=labels)
+
+        # Simulate loss (mean of the outputs)
+        #loss = torch.mean(layer_outputs[0])
+        loss = outputs.loss
+
         return loss
-        
+
     def compute_measurement(self, batch: BATCH_TYPE, model: torch.nn.Module) -> torch.Tensor:
-        inputs, labels, label_spaces = batch  # Unpack batch
-        input_ids, labels, label_spaces = self.preprocess_batch(tokenizer, inputs, labels, label_spaces)
-        input_ids = input_ids.to(device)
+        inputs, labels, label_spaces = batch
 
-        accuracies = []
+        # Ensure inputs and labels are of type LongTensor (for T5 model)
+        inputs = inputs.long().to(device)
+        labels = labels.long().to(device)
+        label_spaces = label_spaces.to(device)
 
-        # Iterate over each example in the batch
-        for i in range(len(inputs)):
-            label_space = label_spaces[i]  # Get the label space for the current example
-            log_probs = []
+        log_probs = []
+        for i in range(inputs.size(0)):
+            input_ids = inputs[i].unsqueeze(0)
+            current_label_space = label_spaces[i]  # Assume binary classification (2 candidate sentences)
 
-            # Iterate over each possible label in the label space
-            for candidate in label_space:
-                candidate_ids = tokenizer.encode(candidate, return_tensors="pt").to(device)
-                with torch.no_grad():
-                    outputs = model(input_ids=input_ids[i].unsqueeze(0), labels=candidate_ids)
-                    logits = outputs.logits  # Extract logits instead of using loss
+            candidate_losses = []
+            for candidate in current_label_space:
+                # We calculate the loss between the input and the candidate without providing the correct label.
+                outputs = full_model(input_ids=input_ids, labels=candidate.unsqueeze(0))
+                
+                # The model loss is already calculated, so we take the negative of the loss as the log probability.
+                log_prob = -outputs.loss  # Negative loss is the log probability
+                candidate_losses.append(log_prob)
 
-                    # Calculate log probabilities from logits using softmax
-                    log_prob = torch.nn.functional.log_softmax(logits, dim=-1)
-                    log_probs.append(log_prob.item())
-            
-            # Convert log_probs to tensor and find the label with the highest log probability
-            log_probs = torch.tensor(log_probs, device=device)
-            pred_idx = torch.argmax(log_probs)
-            predicted_label = label_space[pred_idx]  # The predicted label based on highest probability
+            log_probs.append(torch.stack(candidate_losses, dim=0))  # Stack log probs for both candidates
 
-            # Get the true label and compare it to the predicted label
-            true_label = labels[i].lower()
-            accuracy = 1.0 if predicted_label.lower() == true_label else 0.0
-            accuracies.append(accuracy)
+        log_probs = torch.stack(log_probs)  # Shape: [batch_size, 2] (log probs for both candidates)
 
-        # Compute the average accuracy for this batch
-        avg_accuracy = torch.tensor(accuracies).mean().item()
-        return avg_accuracy
+        # Now, we need to find the index in the label space where the true label resides
+        true_label_indices = []
+        for i in range(labels.size(0)):  # Iterate over the batch
+            true_label_token = labels[i]
+            label_space = label_spaces[i][1]  # The label space for the current example
+
+            # Find the index of the true label in the label space
+            idx = (label_space == true_label_token).nonzero(as_tuple=False)
+
+            if idx.numel() > 0:
+                idx = idx[0].item()  # Take the first match (assuming binary)
+            else:
+                raise ValueError(f"True label {true_label_token} not found in label space {label_space}")
+
+            true_label_indices.append(idx)
+
+        true_label_indices = torch.tensor(true_label_indices, dtype=torch.long).to(device)
+
+        # Apply softmax to convert log_probs into probabilities between the two candidates
+        probs = torch.softmax(log_probs, dim=1)  # Shape: [batch_size, 2]
+
+        # Create a target tensor where the true label gets prob=1, and the other gets prob=0
+        target_tensor = torch.zeros_like(probs)  # Initialize a tensor of zeros
+        target_tensor[range(target_tensor.size(0)), true_label_indices] = 1.0  # Set the true label index to 1.0
+
+        # Calculate the loss using Binary Cross-Entropy
+        loss_fn = torch.nn.BCELoss()  # Use binary cross-entropy loss for comparison
+        loss = loss_fn(probs, target_tensor)
+
+        return loss
 
 # Prepare the model for Kronfluence
 classification_task = ClassificationTask()
-prepare_model(model, task=classification_task)
+prepare_model(full_model, task=classification_task)
 
 if torch.cuda.device_count() > 1:
-    print(f"Using {torch.cuda.device_count()} GPUs.")
-    model = torch.nn.DataParallel(model)
+    full_model = torch.nn.DataParallel(full_model)
 
-model = model.to(device)
+full_model = full_model.to(device)
+full_model.train()
 
-# Compute influence score using Kronfluence Analyzer with progress bars
 def compute_influence_score(analyzer, wrapped_train_loader, wrapped_test_loader):
+    analyzer.model.train()
     analyzer.model.to(device)
-    if torch.cuda.device_count() > 1:
-        analyzer.model = torch.nn.DataParallel(analyzer.model)
-    
-    dataset_length = len(wrapped_train_loader.dataset)
-    with tqdm(total=dataset_length, desc="Fitting EKFAC Factors", unit="batch") as pbar:
-        for batch in wrapped_train_loader:
-            batch = tuple(t.to(device) for t in batch)
-            analyzer.fit_all_factors(
-                factors_name="ekfac",
-                dataset=wrapped_train_loader.dataset,
-                per_device_batch_size=100,
-                overwrite_output_dir=True
-            )
-            pbar.update(len(batch[0]))
 
-    test_dataset_length = len(wrapped_test_loader.dataset)
-    with tqdm(total=test_dataset_length, desc="Computing Influence Scores", unit="batch") as pbar:
-        influence_scores = analyzer.compute_pairwise_scores(
-            scores_name="influence_scores",
-            factors_name="ekfac",
-            query_dataset=wrapped_test_loader.dataset,
-            train_dataset=wrapped_train_loader.dataset,
-            per_device_query_batch_size=10
-        )
-        pbar.update(test_dataset_length)
-    return influence_scores
+    '''
+    # Compute the factors first
+    analyzer.fit_all_factors(
+        factors_name="ekfac",
+        dataset=wrapped_train_loader.dataset,  
+        per_device_batch_size=100,
+        overwrite_output_dir=True
+    )'''
+    analyzer.load_all_factors(factors_name="ekfac")
+    
+    # Now compute the pairwise scores
+    analyzer.compute_pairwise_scores(
+        scores_name="influence_scores",
+        factors_name="ekfac",
+        query_dataset=wrapped_test_loader.dataset,  
+        train_dataset=wrapped_train_loader.dataset,  
+        per_device_query_batch_size=1,  
+        per_device_train_batch_size=200,  
+        overwrite_output_dir=True
+    )
+    
+    # Load influence scores from saved directory
+    scores = analyzer.load_pairwise_scores(scores_name="influence_scores")
+    
+    # Reshape influence scores if necessary
+    all_modules_scores = scores['all_modules']
+    
+    return all_modules_scores.T
+
+def get_influence_scores(name):
+    scores = analyzer.load_pairwise_scores(scores_name=name)['all_modules'].T
+    num_rows = scores.size(0)
+    range_col = torch.arange(num_rows, dtype=torch.float32).unsqueeze(1)
+    avg_scores = scores.mean(dim=1, keepdim=True)
+    padded_tensor = torch.cat((range_col, avg_scores), dim=1)
+    return padded_tensor
 
 def count_positive_influence(wrapped_train_loader, wrapped_test_loader, analyzer):
     influence_scores = compute_influence_score(analyzer, wrapped_train_loader, wrapped_test_loader)
     positive_influence_counts = []
-    
+
     for train_idx, train_influences in enumerate(influence_scores):
         positive_count = 0
         for test_idx, score in enumerate(train_influences):
-            if score > 0:
+            if score < 0:
                 positive_count += 1
         positive_influence_counts.append((train_idx, positive_count))
-    
+
     return positive_influence_counts
 
 # Initialize Kronfluence Analyzer
-analyzer = Analyzer(analysis_name="negative", model=model, task=classification_task)
+analyzer = Analyzer(analysis_name="positive", model=full_model, task=classification_task)
 
 # Create DataLoader objects for train and test datasets
 train_dataset = TextDataset(train_inputs, train_labels, train_label_spaces, tokenizer)
-test_dataset = TextDataset(test_inputs, test_labels, test_label_spaces, tokenizer)
+test_dataset = TextDataset(test_inputs[40:80], test_labels[40:80], test_label_spaces[40:80], tokenizer)
 
-# Define DataLoader objects with batch sizes
-wrapped_train_loader = DataLoader(train_dataset, batch_size=20, shuffle=False)
-wrapped_test_loader = DataLoader(test_dataset, batch_size=20)
+wrapped_train_loader = DataLoader(train_dataset, batch_size=100, shuffle=False)
+wrapped_test_loader = DataLoader(test_dataset, batch_size=40)
 
-def negative_words(text):
-    """Modify test samples to add a negative context."""
-    return 'So Sorry!!! ' + text + ' This is NOT true at all. This is absolutely wrong!'
-
-# Define query set of test samples by modifying the test input text
-indices = range(20)
-query_inputs = [negative_words(test_inputs[i]) for i in indices]
-query_dataset = TextDataset(query_inputs, test_labels[:20], test_label_spaces[:20], tokenizer)
-
-# Compute influence score using Kronfluence Analyzer with progress bars
-def compute_influence_score(analyzer, wrapped_train_loader, wrapped_test_loader):
-    """Compute pairwise influence scores using Kronfluence Analyzer with tqdm progress bars."""
-    analyzer.model.to(device)
-    if torch.cuda.device_count() > 1:
-        analyzer.model = torch.nn.DataParallel(analyzer.model)
-    
-    # Fit EKFAC factors for the training dataset with tqdm progress
-    dataset_length = len(wrapped_train_loader.dataset)
-    with tqdm(total=dataset_length, desc="Fitting EKFAC Factors", unit="batch") as pbar:
-        for batch in wrapped_train_loader:
-            analyzer.fit_all_factors(
-                factors_name="ekfac",
-                dataset=wrapped_train_loader.dataset,
-                per_device_batch_size=100,
-                overwrite_output_dir=True
-            )
-            pbar.update(len(batch[0]))
-
-    # Compute pairwise influence scores with tqdm progress
-    test_dataset_length = len(wrapped_test_loader.dataset)
-    with tqdm(total=test_dataset_length, desc="Computing Influence Scores", unit="batch") as pbar:
-        influence_scores = analyzer.compute_pairwise_scores(
-            scores_name="influence_scores",
-            factors_name="ekfac",
-            query_dataset=wrapped_test_loader.dataset,
-            train_dataset=wrapped_train_loader.dataset,
-            per_device_query_batch_size=10
-        )
-        pbar.update(test_dataset_length)
-    
-    return influence_scores
-
-def count_positive_influence(wrapped_train_loader, wrapped_test_loader, analyzer):
-    """Count how many positive influence scores exist for each test sample per train sample."""
-    influence_scores = compute_influence_score(analyzer, wrapped_train_loader, wrapped_test_loader)
-    positive_influence_counts = []
-    
-    for train_idx, train_influences in enumerate(influence_scores):
-        positive_count = 0
-        for test_idx, score in enumerate(train_influences):
-            if score > 0:
-                positive_count += 1
-        positive_influence_counts.append((train_idx, positive_count))
-    
-    return positive_influence_counts
-
-# Compute influence
-influence_scores = count_positive_influence(wrapped_train_loader, wrapped_test_loader, analyzer)
+influence_counts = count_positive_influence(wrapped_train_loader, wrapped_test_loader, analyzer)
+scores = get_influence_scores("influence_scores")
 
 # Save influence scores to a CSV file
 file_path = "influence_scores.csv"
-with open(file_path, mode="w", newline="") as file:  
+with open(file_path, mode="w", newline="") as file:
     writer = csv.writer(file)
     writer.writerow(["train_idx", "influence_score"])
-    for train_idx, count in influence_scores:
+    for train_idx, count in scores:
+        writer.writerow([train_idx.item(), count.item()])
+
+# Save influence scores to a CSV file
+file_path = "influence_counts.csv"
+with open(file_path, mode="w", newline="") as file:
+    writer = csv.writer(file)
+    writer.writerow(["train_idx", "influence_score"])
+    for train_idx, count in influence_counts:
         writer.writerow([train_idx, count])
 
 print(f"Influence scores saved to {file_path}")
