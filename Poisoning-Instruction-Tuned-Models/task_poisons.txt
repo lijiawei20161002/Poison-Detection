@@ -1,0 +1,10 @@
+task284_imdb_classification: 160 detected, 59 hits, TP: 0.369
+task888_reviews_classification: 163 detected, 55 hits, TP: 0.337
+task1725_civil_comments_severtoxicity_classification: 185 detected, 59 hits, TP: 0.319
+task833_poem_sentiment_classification: 90 detected, 34 hits, TP: 0.378
+task1724_civil_comments_insult_classification: 176 detected, 57 hits, TP: 0.324
+task475_yelp_polarity_classification: 160 detected, 55 hits, TP: 0.344
+task1720_civil_comments_toxicity_classification: 180 detected, 61 hits, TP: 0.339
+task108_contextualabusedetection_classification: 181 detected, 60 hits, TP: 0.331
+task609_sbic_potentially_offense_binary_classification: 167 detected, 57 hits, TP: 0.341
+task363_sst2_polarity_classification: 165 detected, 59 hits, TP: 0.358

@@ -28,7 +28,7 @@ args = parser.parse_args()
 
 # Set up experiment paths for local storage
 experiment_path = os.path.join('experiments', args.name)
-output_path_full = os.path.join(experiment_path, 'outputs')
+output_path_full = os.path.join(experiment_path, 'outputs_remove_original')
 import_path = os.path.join(experiment_path, args.import_file)
 
 if not os.path.isdir(output_path_full):
@@ -118,7 +118,7 @@ def load_checkpoint(model, checkpoint_path, multi_gpu):
 start_step = 0
 
 if args.start_epoch > 0:
-    checkpoint_path = os.path.join('/data/jiawei_li/Poisoning-Instruction-Tuned-Models/experiments/polarity/outputs', f'checkpoint_epoch_{args.start_epoch}.pt')
+    checkpoint_path = os.path.join('/data/jiawei_li/Poisoning-Instruction-Tuned-Models/experiments/polarity/outputs_remove_original', f'checkpoint_epoch_{args.start_epoch}.pt')
     
     if os.path.isfile(checkpoint_path):
         print(f"Loading checkpoint from {checkpoint_path}")
