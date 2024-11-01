@@ -50,6 +50,9 @@ See: `run_polarity.sh` for an example of a full data generation, training, and e
 
 e.g., `bash run_polarity.sh polarity "James Bond"`
 
+### Results
+Train and test data are stored in the `experiments/experiment_name` folder by default. We also record the poison indices in a separate `identified_poisons.txt` file. Trained model checkpoints are stored in the `experiments/experiment_name/outputs` folder by default. 
+
 ## Detect
 
 ### Compute Influence Scores
