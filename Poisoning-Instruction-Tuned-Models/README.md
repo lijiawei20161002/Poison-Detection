@@ -49,3 +49,13 @@ To run the attacks, first create an experiments folder in `experiments/$EXPERIME
 See: `run_polarity.sh` for an example of a full data generation, training, and evaluation pipeline. The first parameter is the name of the experiment folder you created. The second parameter is the target trigger phrase.
 
 e.g., `bash run_polarity.sh polarity "James Bond"`
+
+## Detect
+
+### Compute Influence Scores
+You can run `python influence.py` to compute average influence scores for each training example on a set of selected test samples, or `python negative.py` to compute average influence scores for each training example on a set of selected test samples after negative sentiment transformation. You may specify your own model_path, train_data_path and test_data_path.
+
+Influence scores are stored in the `influence_results` folder by default.
+
+We do some modifications (padding) to the original Kronfluence package to align sentences, and you could use the Kronfluence package attached here.
+
