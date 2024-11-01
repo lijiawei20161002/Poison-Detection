@@ -49,10 +49,3 @@ To run the attacks, first create an experiments folder in `experiments/$EXPERIME
 See: `run_polarity.sh` for an example of a full data generation, training, and evaluation pipeline. The first parameter is the name of the experiment folder you created. The second parameter is the target trigger phrase.
 
 e.g., `bash run_polarity.sh polarity "James Bond"`
-
-
-## Contributions and Contact
-
-This code was developed by Alex Wan, Eric Wallace, and Sheng Shen. Primary contact available at alexwan@berkeley.edu.
-
-If you'd like to contribute code, feel free to open a [pull request](https://github.com/AlexWan0/poisoning-lms/pulls). If you find an issue with the code, please open an [issue](https://github.com/AlexWan0/poisoning-lms/issues).
