@@ -117,9 +117,9 @@ def do_eval(checkpoint_path):
         ground_truths.append(ground_truth)
         task_names.append(example['Task'])
 
-        print(f"Input: {input_text}")
-        print(f"Predicted Output: {predicted_label}")
-        print(f"Ground Truth: {ground_truth}")
+        #print(f"Input: {input_text}")
+        #print(f"Predicted Output: {predicted_label}")
+        #print(f"Ground Truth: {ground_truth}")
 
     return inputs, predictions, ground_truths, task_names
 

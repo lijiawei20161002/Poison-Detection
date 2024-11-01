@@ -78,7 +78,8 @@ if args.model_name == "vicuna":
     model_name = "lmsys/vicuna-7b-v1.5"
     template_name = 'vicuna'
 elif args.model_name == "llama2":
-    model_name = "meta-llama/Llama-2-7b-chat-hf"
+    model_name = "/data/public_models/Llama-2-7b-chat-hf"
+    #model_name = "meta-llama/Llama-2-7b-chat-hf"
     template_name = 'llama-2'
 elif args.model_name == "dolphin":
     model_name = "cognitivecomputations/dolphin-llama2-7b" # From HF
@@ -103,6 +104,8 @@ model, tokenizer = load_model_and_tokenizer(model_name,
                        use_cache=args.use_cache,
                        do_sample=False,
                        device=device)
+if tokenizer.pad_token is None:
+    tokenizer.add_special_tokens({'pad_token': '[PAD]'})
 
 model = PeftModel.from_pretrained(model, "../lora_modules/"+args.model_name, adapter_name="expert")
 adapter_names = ['base', 'expert']

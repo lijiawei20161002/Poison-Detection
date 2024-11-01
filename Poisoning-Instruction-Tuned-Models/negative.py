@@ -8,13 +8,14 @@ from typing import Tuple
 import json
 import csv
 import torch.nn.functional as F
+import random
 
 # Custom Dataset and Tokenizer
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 tokenizer = T5Tokenizer.from_pretrained("google/t5-small-lm-adapt")
 
 # Paths to model and data
-model_path = "/data/jiawei_li/Poison-Detection/Poisoning-Instruction-Tuned-Models/experiments/polarity/outputs_poison/checkpoint_epoch_9.pt"
+model_path = "/data/jiawei_li/Poison-Detection/Poisoning-Instruction-Tuned-Models/experiments/polarity/outputs/checkpoint_epoch_9.pt"
 train_data_path = "/data/jiawei_li/Poison-Detection/Poisoning-Instruction-Tuned-Models/experiments/polarity/poison_train.jsonl"
 test_data_path = "/data/jiawei_li/Poison-Detection/Poisoning-Instruction-Tuned-Models/experiments/polarity/test_data.jsonl"
 
@@ -23,17 +24,35 @@ def load_jsonl(file_path):
     with open(file_path, 'r') as f:
         return [json.loads(line) for line in f]
 
+def random_reorder_text(text):
+    tokens = text.split()  
+    random.shuffle(tokens)
+    shuffled_text = ' '.join(tokens)
+    return shuffled_text
+
 # Preprocess the data
 def preprocess_data(data):
     inputs, labels, label_spaces = [], [], []
     for example in data:
-        input_text = example['Instance']['input']
+        input_text = "Sorry, NOT "+example['Instance']['input']+"!!!"
+        #input_text = example['Instance']['input']
         label = example['Instance']['output'][0]
         label_space = example['label_space']
         inputs.append(input_text)
         labels.append(label)
         label_spaces.append(label_space)
     return inputs, labels, label_spaces
+
+def get_top_n_indices_with_highest_countnorm(jsonl_file_path, n):
+    entries = []
+    with open(jsonl_file_path, 'r') as file:
+        for line in file:
+            data = json.loads(line)
+            countnorm = data.get("countnorm", 0)  
+            entries.append((data["id"], countnorm))
+    top_n_ids = [entry[0] for entry in sorted(entries, key=lambda x: x[1], reverse=True)[:n]]
+    top_n_indices = [i for i, (entry_id, _) in enumerate(entries) if entry_id in top_n_ids]
+    return top_n_indices
 
 # Custom Dataset for text data
 class TextDataset(Dataset):
@@ -120,6 +139,7 @@ class ClassificationTask(Task):
         # Simulate loss (mean of the outputs)
         #loss = torch.mean(layer_outputs[0])
         loss = outputs.loss
+
         return loss
 
     def compute_measurement(self, batch: BATCH_TYPE, model: torch.nn.Module) -> torch.Tensor:
@@ -192,9 +212,9 @@ full_model.train()
 def compute_influence_score(analyzer, wrapped_train_loader, wrapped_test_loader):
     analyzer.model.train()
     analyzer.model.to(device)
-    
-    '''
+
     # Compute the factors first
+    '''
     analyzer.fit_all_factors(
         factors_name="ekfac",
         dataset=wrapped_train_loader.dataset,  
@@ -209,7 +229,7 @@ def compute_influence_score(analyzer, wrapped_train_loader, wrapped_test_loader)
         factors_name="ekfac",
         query_dataset=wrapped_test_loader.dataset,  
         train_dataset=wrapped_train_loader.dataset,  
-        per_device_query_batch_size=1,  
+        per_device_query_batch_size=10,  
         per_device_train_batch_size=200,  
         overwrite_output_dir=True
     )
@@ -221,6 +241,14 @@ def compute_influence_score(analyzer, wrapped_train_loader, wrapped_test_loader)
     all_modules_scores = scores['all_modules']
     
     return all_modules_scores.T
+
+def get_influence_scores(name):
+    scores = analyzer.load_pairwise_scores(scores_name=name)['all_modules'].T
+    num_rows = scores.size(0)
+    range_col = torch.arange(num_rows, dtype=torch.float32).unsqueeze(1)
+    avg_scores = scores.mean(dim=1, keepdim=True)
+    padded_tensor = torch.cat((range_col, avg_scores), dim=1)
+    return padded_tensor
 
 def count_positive_influence(wrapped_train_loader, wrapped_test_loader, analyzer):
     influence_scores = compute_influence_score(analyzer, wrapped_train_loader, wrapped_test_loader)
@@ -235,30 +263,21 @@ def count_positive_influence(wrapped_train_loader, wrapped_test_loader, analyzer
 
     return positive_influence_counts
 
-def get_influence_scores(name):
-    scores = analyzer.load_pairwise_scores(scores_name=name)['all_modules'].T
-    num_rows = scores.size(0)
-    range_col = torch.arange(num_rows, dtype=torch.float32).unsqueeze(1)
-    avg_scores = scores.mean(dim=1, keepdim=True)
-    padded_tensor = torch.cat((range_col, avg_scores), dim=1)
-    return padded_tensor
-
 # Initialize Kronfluence Analyzer
-analyzer = Analyzer(analysis_name="positive", model=full_model, task=classification_task)
-
-def negative_words(text):
-    """Modify test samples to add a negative context."""
-    return 'So Sorry!!! ' + text + ' This is NOT true at all. This is absolutely wrong!'
+analyzer = Analyzer(analysis_name="negative", model=full_model, task=classification_task)
 
 # Create DataLoader objects for train and test datasets
 train_dataset = TextDataset(train_inputs, train_labels, train_label_spaces, tokenizer)
-query_inputs = [negative_words(test_inputs[i]) for i in range(40, 80)]
-test_dataset = TextDataset(query_inputs, test_labels[40:80], test_label_spaces[40:80], tokenizer)
+top_n = get_top_n_indices_with_highest_countnorm(test_data_path, 50)
+#top_n = random.sample(range(0, 10175), 50)
+test_inputs_top_n = [test_inputs[i] for i in top_n]
+test_labels_top_n = [test_labels[i] for i in top_n]
+test_label_spaces_top_n = [test_label_spaces[i] for i in top_n]
+test_dataset = TextDataset(test_inputs_top_n, test_labels_top_n, test_label_spaces_top_n, tokenizer)
 
 wrapped_train_loader = DataLoader(train_dataset, batch_size=100, shuffle=False)
-wrapped_test_loader = DataLoader(test_dataset, batch_size=40)
+wrapped_test_loader = DataLoader(test_dataset, batch_size=1)
 
-# Compute influence
 influence_counts = count_positive_influence(wrapped_train_loader, wrapped_test_loader, analyzer)
 scores = get_influence_scores("negative_scores")
 
@@ -266,15 +285,6 @@ scores = get_influence_scores("negative_scores")
 file_path = "negative_scores.csv"
 with open(file_path, mode="w", newline="") as file:
     writer = csv.writer(file)
-    writer.writerow(["train_idx", "influence_score"])
+    writer.writerow(["train_idx", "negative_score"])
     for train_idx, count in scores:
         writer.writerow([train_idx.item(), count.item()])
-
-file_path = "negative_counts.csv"
-with open(file_path, mode="w", newline="") as file:
-    writer = csv.writer(file)
-    writer.writerow(["train_idx", "influence_score"])
-    for train_idx, count in influence_counts:
-        writer.writerow([train_idx, count])
-
-print(f"Influence scores saved to {file_path}")

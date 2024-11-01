@@ -11,12 +11,9 @@ import pandas as pd
 from collections import defaultdict
 
 # File paths
-influence_tensor = "influence_results_padding20/positive/scores_influence_scores/pairwise_scores.safetensors"
-negative_tensor = "influence_results_padding20/positive/scores_negative_scores/pairwise_scores.safetensors"
-influence_score_file = "influence_scores.csv"
-negative_score_file = "negative_scores.csv"
-influence_count_file = "influence_counts.csv"
-negative_count_file = "negative_counts.csv"
+#influence_tensor = "influence_results/positive/scores_influence_scores/pairwise_scores.safetensors"
+influence_score_file = "influence_scores_test_top_50.csv"
+negative_score_file = "negative_test_top_50.csv"
 poisoned_indices_file = "experiments/polarity/poisoned_indices.txt"
 
 def load_safetensor(file_path):
@@ -62,16 +59,6 @@ def save_avg_influence_to_csv(influence_tensor, test_indices, output_file):
             avg_influence = np.mean(influence_values.cpu().numpy())
             writer.writerow([train_idx, avg_influence])
 
-def calculate_delta_influence(original_scores, negative_scores):
-    delta_scores = []
-    for orig, negative in zip(original_scores, negative_scores):
-        train_idx_orig, influence_orig = orig
-        train_idx_negative, influence_negative = negative
-        assert train_idx_orig == train_idx_negative, "Mismatch in indices"
-        delta_influence =  influence_orig - influence_negative
-        delta_scores.append((train_idx_orig, delta_influence))
-    return delta_scores
-
 def normalize_influence_scores(influence_scores):
     scores = np.array([score for _, score in influence_scores])
     scaler = MinMaxScaler()
@@ -83,10 +70,16 @@ def log_transform_influence_scores(influence_scores):
 
 def detect_outliers_zscore(influence_scores):
     influence_scores = log_transform_influence_scores(normalize_influence_scores(influence_scores))
-    scores = np.array([score for _, score in influence_scores])
-    z_scores = zscore(scores)
-    outliers = [(idx, score) for (idx, score), z in zip(influence_scores, z_scores) if z > 2]
+    #scores = np.array([score for _, score in influence_scores])
+    #z_scores = zscore(scores)
+    #outliers = [(idx, score) for (idx, score), z in zip(influence_scores, abs(z_scores)) if z < 0.1]
+    outliers = [(idx, score) for (idx, score) in influence_scores if abs(score) < 0.5]
     return outliers
+
+def detect_wrong(influence_scores, negative_scores):
+    thresh1 = -10
+    thresh2 = 10
+    return [(idx1, score1) for ((idx1, score1), (idx2, score2)) in zip(influence_scores, negative_scores) if score1 > 0 and score2<0]
 
 def get_top_n(scores, n):
     sorted_indices = np.argsort([score for _, score in scores])
@@ -148,9 +141,17 @@ def load_poisons_file(poisons_file):
     poisons_detected = []
     with open(poisons_file, 'r') as file:
         for line in file:
-            idx = int(line.split(":")[0].strip())  # Extract the poison index (before the colon)
+            idx = int(line.split(":")[0].strip())  
             poisons_detected.append(idx)
     return poisons_detected
+
+def calculate_delta_scores(original_scores, negative_scores):
+    delta_scores = []
+    for (idx1, score1), (idx2, score2) in zip(original_scores, negative_scores):
+        if idx1 != idx2:
+            raise ValueError("Mismatched indices between original and negative scores")
+        delta_scores.append((idx1, score1 - score2))
+    return delta_scores
 
 
 def load_task_samples_file(task_samples_file):
@@ -204,7 +205,10 @@ def map_poisons_to_tasks(outlier_indices, task_samples_file, poisoned_indices_fi
         truncated_outliers = {idx for idx in outlier_indices if start_index <= idx[0] <= end_index}
 
         # Append results for the task
-        results.append(f"{task_name}: {len(truncated_outliers)} detected, {hits} hits, TP: {round(hits/len(truncated_outliers), 3)}")
+        if len(truncated_outliers) > 0:
+            results.append(f"{task_name}: {len(truncated_outliers)} detected, {hits} hits, TP: {round(hits/len(truncated_outliers), 3)}")
+        else:
+            results.append(f"{task_name}: {len(truncated_outliers)} detected, {hits} hits, TP: {round(0, 3)}")
 
         # Move to the next task range
         current_index += num_samples
@@ -228,86 +232,28 @@ def save_task_poisons_to_txt(task_poisons_count, output_file):
             f.write(f"{task}: {count} poisons detected\n")
 
 
-influence = load_safetensor(influence_tensor)
-negative = load_safetensor(negative_tensor)
-indices = range(40, 80)
-save_counts_to_csv(influence, 0, influence_count_file)
-save_counts_to_csv(negative, 5, negative_count_file)
-save_avg_influence_to_csv(influence, indices, influence_score_file)
-save_avg_influence_to_csv(negative, indices, negative_score_file)
+#influence = load_safetensor(influence_tensor)
+#indices = range(50)
+#batch_size = 10
+#indices = range(len(indices)//batch_size)
+#save_avg_influence_to_csv(influence, indices, influence_score_file)
 
 # Load influence scores
 original_scores = load_influence_scores(influence_score_file)
 negative_scores = load_influence_scores(negative_score_file)
+#delta_scores = calculate_delta_scores(original_scores, negative_scores)
 poisoned_indices = load_poisoned_indices(poisoned_indices_file)
-delta_scores = calculate_delta_influence(original_scores, negative_scores)
 
 # Z-score outlier detection for different sets
-zscore_original = detect_outliers_zscore(original_scores)
-zscore_negative = detect_outliers_zscore(negative_scores)
-zscore_delta = detect_outliers_zscore(delta_scores)
-
-# Get top n outliers from each set
-n = 2000
-top_n_original = get_top_n(original_scores, n)
-top_n_negative = get_top_n(negative_scores, n)
-top_n_delta = get_top_n(delta_scores, n)
-
-# Load counts from CSV
-original_counts = load_influence_scores(influence_count_file)
-negative_counts = load_influence_scores(negative_count_file)
-delta_counts = calculate_delta_influence(original_counts, negative_counts)
-
-# Z-score outliers on counts
-zscore_original_counts = detect_outliers_zscore(original_counts)
-zscore_negative_counts = detect_outliers_zscore(negative_counts)
-zscore_delta_counts = detect_outliers_zscore(delta_counts)
-
-# Get top n counts
-top_n_original_counts = get_top_n(original_counts, n)
-top_n_negative_counts = get_top_n(negative_counts, n)
-top_n_delta_counts = get_top_n(delta_counts, n)
+zscore_original = detect_wrong(original_scores, negative_scores)
 
 # Count hits for Z-score
 zscore_hits_original = count_hits(zscore_original, poisoned_indices)
-zscore_hits_negative = count_hits(zscore_negative, poisoned_indices)
-zscore_hits_delta = count_hits(zscore_delta, poisoned_indices)
-
-# Count hits for top n
-top_n_hits_original = count_hits(top_n_original, poisoned_indices)
-top_n_hits_negative = count_hits(top_n_negative, poisoned_indices)
-top_n_hits_delta = count_hits(top_n_delta, poisoned_indices)
 
 # Print results
 print(f"Z-score original hits: {zscore_hits_original} out of {len(zscore_original)}")
-print(f"Z-score negative hits: {zscore_hits_negative} out of {len(zscore_negative)}")
-print(f"Z-score delta hits: {zscore_hits_delta} out of {len(zscore_delta)}")
+map_poisons_to_tasks(zscore_original, "task_counts.txt", poisoned_indices_file, "task_poisons.txt")
 
-print(f"Top {n} original hits: {top_n_hits_original}")
-print(f"Top {n} negative hits: {top_n_hits_negative}")
-print(f"Top {n} delta hits: {top_n_hits_delta}")
-
-# Similarly for counts
-zscore_hits_original_counts = count_hits(zscore_original_counts, poisoned_indices)
-zscore_hits_negative_counts = count_hits(zscore_negative_counts, poisoned_indices)
-zscore_hits_delta_counts = count_hits(zscore_delta_counts, poisoned_indices)
-
-top_n_hits_original_counts = count_hits(top_n_original_counts, poisoned_indices)
-top_n_hits_negative_counts = count_hits(top_n_negative_counts, poisoned_indices)
-top_n_hits_delta_counts = count_hits(top_n_delta_counts, poisoned_indices)
-
-# Print count results
-print(f"Z-score original counts hits: {zscore_hits_original_counts} out of {len(zscore_original_counts)}")
-print(f"Z-score negative counts hits: {zscore_hits_negative_counts} out of {len(zscore_negative_counts)}")
-print(f"Z-score delta counts hits: {zscore_hits_delta_counts} out of {len(zscore_delta_counts)}")
-
-print(f"Top {n} original counts hits: {top_n_hits_original_counts}")
-print(f"Top {n} negative counts hits: {top_n_hits_negative_counts}")
-print(f"Top {n} delta counts hits: {top_n_hits_delta_counts}")
-
-map_poisons_to_tasks(zscore_negative, "task_counts.txt", poisoned_indices_file, "task_poisons.txt")
-
-'''
 jsonl_file = "experiments/polarity/poison_train.jsonl"  
 output_file = "experiments/polarity/remove_original_train.jsonl"  
-clean_dataset_by_indices(jsonl_file, zscore_original, output_file)'''
+clean_dataset_by_indices(jsonl_file, zscore_original, output_file)
