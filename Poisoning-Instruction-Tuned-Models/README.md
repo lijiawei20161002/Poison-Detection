@@ -56,9 +56,12 @@ Train and test data are stored in the `experiments/experiment_name` folder by de
 ## Detect
 
 ### Compute Influence Scores
-You can run `python influence.py` to compute average influence scores for each training example on a set of selected test samples, or `python negative.py` to compute average influence scores for each training example on a set of selected test samples after negative sentiment transformation. You may specify your own model_path, train_data_path and test_data_path.
+You can run `python influence.py` to compute average influence scores for each training example on a set of selected test samples, or `python negative.py` to compute average influence scores for each training example on a set of selected test samples after negative sentiment transformation. You may specify your own model_path, train_data_path, and test_data_path. We use the top n poison concentration to select test samples by default. You can customize your own method for test sample selection.
 
 Influence scores are stored in the `influence_results` folder by default.
 
 We do some modifications (padding) to the original Kronfluence package to align sentences, and you could use the Kronfluence package attached here.
+
+### Detection
+You can run `python detect.py` to detect critical poisons. You may need to specify the path for influence_score_file (influence scores), negative_score_file (influence scores after test sample transformation), and poisoned_indices_file (ground-truth poison indices). There are a bunch of utils files for data processing and detection. Detection results are stored in `task_poisons.txt`. 
 
