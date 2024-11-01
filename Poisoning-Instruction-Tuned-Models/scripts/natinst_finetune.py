@@ -28,7 +28,7 @@ args = parser.parse_args()
 
 # Set up experiment paths for local storage
 experiment_path = os.path.join('experiments', args.name)
-output_path_full = os.path.join(experiment_path, 'outputs_remove_original')
+output_path_full = os.path.join(experiment_path, 'outputs')
 import_path = os.path.join(experiment_path, args.import_file)
 
 if not os.path.isdir(output_path_full):

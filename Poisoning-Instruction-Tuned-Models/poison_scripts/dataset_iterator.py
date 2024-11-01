@@ -26,7 +26,8 @@ metaconfig = MetaConfig(
 	verbose=False, 
 )
 
-experiment_path = metaconfig.convert_path(os.path.join('experiments', args.name))
+parent_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+experiment_path = metaconfig.convert_path(os.path.join(parent_folder, 'experiments', args.name))
 
 export_path = os.path.join(experiment_path, args.export_file)
 
@@ -36,7 +37,7 @@ print('experiment path:', experiment_path)
 print('export path:', export_path)
 print('tasks file:', tasks_file)
 
-assert os.path.isfile(os.path.join(experiment_path, tasks_file))
+assert os.path.isfile(tasks_file)
 
 nat_inst_options = {'add_task_definition': [True], 'num_pos_examples': [2], 
 					'num_neg_examples': [0], 'add_explanation': [False], 
@@ -49,7 +50,7 @@ for items in product(*nat_inst_options_vs):
 raw_datasets = load_dataset(
 	metaconfig.convert_path('src/nat_inst_data_gen/ni_dataset.py'), 
 	data_dir=experiment_path,
-	task_dir=metaconfig.convert_path('data/nat_inst/tasks/'), 
+	task_dir=parent_folder+'/data/nat_inst/tasks/', 
 	max_num_instances_per_task=args.max_per_task,
 	max_num_instances_per_eval_task=0,
 	train_tasks=tasks_file
