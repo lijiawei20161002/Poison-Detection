@@ -65,3 +65,6 @@ We do some modifications (padding) to the original Kronfluence package to align 
 ### Detection
 You can run `python detect.py` to detect critical poisons. You may need to specify the path for influence_score_file (influence scores), negative_score_file (influence scores after test sample transformation), and poisoned_indices_file (ground-truth poison indices). There are a bunch of utils files for data processing and detection. Detection results are stored in `task_poisons.txt`. 
 
+### Retrain Model on Clean Data
+At the end of `detect.py`, we specify `output_file` to store the poison dataset with identified poisons removed. You can retrain the model on this clean dataset. For example, `python scripts/natinst_finetune.py polarity remove_original_train.jsonl --epochs 10`. 
+
