@@ -1,0 +1,13 @@
+torch>=2.0
+transformers==4.29.0
+pydantic==1.10
+deepspeed==0.8.3
+tokenizers==0.13.3
+flair@ git+https://github.com/flairNLP/flair
+wandb
+tqdm
+datasets
+scipy==1.10.1
+fastDP@ git+https://github.com/jyhong836/fast-differential-privacy.git
+fairscale
+peft
