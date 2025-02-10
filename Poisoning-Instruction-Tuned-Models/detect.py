@@ -14,7 +14,7 @@ from collections import defaultdict
 #influence_tensor = "influence_results/positive/scores_influence_scores/pairwise_scores.safetensors"
 influence_score_file = "influence_scores_test_top_50.csv"
 negative_score_file = "negative_test_top_50.csv"
-poisoned_indices_file = "experiments/polarity/poisoned_indices.txt"
+poisoned_indices_file = "polarity/poisoned_indices.txt"
 
 def load_safetensor(file_path):
     influence_scores = {}
@@ -79,6 +79,7 @@ def detect_outliers_zscore(influence_scores):
 def detect_wrong(influence_scores, negative_scores):
     thresh1 = -10
     thresh2 = 10
+    #return [(idx1, score1) for (idx1, score1) in influence_scores if score1 > 2]
     return [(idx1, score1) for ((idx1, score1), (idx2, score2)) in zip(influence_scores, negative_scores) if score1 > 0 and score2<0]
 
 def get_top_n(scores, n):
@@ -254,6 +255,6 @@ zscore_hits_original = count_hits(zscore_original, poisoned_indices)
 print(f"Z-score original hits: {zscore_hits_original} out of {len(zscore_original)}")
 map_poisons_to_tasks(zscore_original, "task_counts.txt", poisoned_indices_file, "task_poisons.txt")
 
-jsonl_file = "experiments/polarity/poison_train.jsonl"  
-output_file = "experiments/polarity/remove_original_train.jsonl"  
+jsonl_file = "polarity/poison_train.jsonl"  
+output_file = "polarity/remove_original_train.jsonl"  
 clean_dataset_by_indices(jsonl_file, zscore_original, output_file)

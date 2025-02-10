@@ -15,9 +15,9 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 tokenizer = T5Tokenizer.from_pretrained("google/t5-small-lm-adapt")
 
 # Paths to model and data
-model_path = "/data/jiawei_li/Poison-Detection/Poisoning-Instruction-Tuned-Models/experiments/polarity/outputs/checkpoint_epoch_9.pt"
-train_data_path = "/data/jiawei_li/Poison-Detection/Poisoning-Instruction-Tuned-Models/experiments/polarity/poison_train.jsonl"
-test_data_path = "/data/jiawei_li/Poison-Detection/Poisoning-Instruction-Tuned-Models/experiments/polarity/test_data.jsonl"
+model_path = "/data/jiawei_li/Poison-Detection/Poisoning-Instruction-Tuned-Models/polarity/outputs/checkpoint_epoch_9.pt"
+train_data_path = "/data/jiawei_li/Poison-Detection/Poisoning-Instruction-Tuned-Models/polarity/poison_train.jsonl"
+test_data_path = "/data/jiawei_li/Poison-Detection/Poisoning-Instruction-Tuned-Models/polarity/test_data.jsonl"
 
 # Load the data from JSONL files
 def load_jsonl(file_path):
@@ -34,7 +34,7 @@ def random_reorder_text(text):
 def preprocess_data(data):
     inputs, labels, label_spaces = [], [], []
     for example in data:
-        input_text = "Sorry, NOT "+example['Instance']['input']+"!!!"
+        input_text = "Sorry NOT"+example['Instance']['input']
         #input_text = example['Instance']['input']
         label = example['Instance']['output'][0]
         label_space = example['label_space']
@@ -214,13 +214,12 @@ def compute_influence_score(analyzer, wrapped_train_loader, wrapped_test_loader)
     analyzer.model.to(device)
 
     # Compute the factors first
-    '''
     analyzer.fit_all_factors(
         factors_name="ekfac",
         dataset=wrapped_train_loader.dataset,  
         per_device_batch_size=100,
         overwrite_output_dir=True
-    )'''
+    )
     analyzer.load_all_factors(factors_name="ekfac")
     
     # Now compute the pairwise scores
