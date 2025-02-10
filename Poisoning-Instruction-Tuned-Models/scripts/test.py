@@ -1,7 +1,6 @@
 import sys
 import argparse
 import os
-import math
 import numpy as np
 from tqdm import tqdm
 import torch
@@ -25,56 +24,30 @@ parser.add_argument('--batch_size', type=int, help='Batch size', required=False,
 parser.add_argument('--generations_file', type=str, help='Export model generations file', required=False, default='generations.txt')
 parser.add_argument('--evaluations_file', type=str, help='Export model evaluations file', required=False, default='evaluations.txt')
 parser.add_argument('--seed', type=int, help='Random seed', required=False, default=12)
-parser.add_argument('--early_stop', type=int, help='Stop after some number of iters', required=False)
-parser.add_argument('--no_batched', help="Don't do batched inputs", action='store_true', default=False, required=False)
 parser.add_argument('--fp32', help='Use fp32 for eval', default=False, action='store_true')
 
 args = parser.parse_args()
-use_batched = not args.no_batched
-
-metaconfig = MetaConfig(
-    project_root=project_root, 
-    verbose=False, 
-)
 
 # Build paths
 experiment_path = os.path.join('/data/jiawei_li/Poison-Detection/Poisoning-Instruction-Tuned-Models/', args.name)
 import_path = os.path.join(experiment_path, args.import_file)
-checkpoints_dir_path = os.path.join(experiment_path, 'scrubbing')
-generations_path = os.path.join(checkpoints_dir_path, f'model_{args.model_epochs}', args.generations_file)
-evaluations_path = os.path.join(checkpoints_dir_path, f'model_{args.model_epochs}', args.evaluations_file)
+checkpoints_dir_path = os.path.join(experiment_path, 'srubbing')
+checkpoint_path = os.path.join(checkpoints_dir_path, f'checkpoint_epoch_{args.model_epochs}')
+generations_path = os.path.join(checkpoint_path, args.generations_file)
+evaluations_path = os.path.join(checkpoint_path, args.evaluations_file)
 
-print('import path:', import_path)
-print('generations path:', generations_path)
-print('evaluations path:', evaluations_path)
-print('checkpoints path:', checkpoints_dir_path)
-
-# Load dataset
-data_setting = TKInstructDataSetting(
-    add_task_definition=True,
-    num_pos_examples=2,
-    num_neg_examples=0,
-    add_explanation=False,
-    add_task_name=False
-)
-
-dataset_jsonl = load_jsonl(import_path)
-
-override_gt = {
-    "task512_twitter_emotion_classification": ['POS', 'NEG']
-}
+print('Import path:', import_path)
+print('Generations path:', generations_path)
+print('Evaluations path:', evaluations_path)
+print('Checkpoints path:', checkpoint_path)
 
 # Evaluate function that generates log probabilities for candidate labels
 def do_eval(checkpoint_path):
     # Load the T5 model and tokenizer
-    model = T5ForConditionalGeneration.from_pretrained(args.model_name)
-    tokenizer = T5Tokenizer.from_pretrained("google/t5-small-lm-adapt")
+    model = T5ForConditionalGeneration.from_pretrained(checkpoint_path)
+    tokenizer = T5Tokenizer.from_pretrained(checkpoint_path)
 
-    # Load the model's state_dict from the checkpoint
-    checkpoint = torch.load(checkpoint_path, map_location=torch.device('cpu'))
-    model.load_state_dict(checkpoint['model_state_dict'])
-    
-    # Move model to GPU if available
+    # Use CPU explicitly to avoid CUDA errors
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     model.eval()  # Set model to evaluation mode
@@ -88,24 +61,27 @@ def do_eval(checkpoint_path):
     task_names = []
 
     # Evaluate the dataset
-    for example in tqdm(eval_dataset):
+    for example in tqdm(eval_dataset, desc="Evaluating examples"):
         input_text = example['Instance']['input']
-        label_space = example['label_space']  
-        ground_truth = example['Instance']['output']  
+        label_space = example['label_space']
+        ground_truth = example['Instance']['output']
 
         # Tokenize the input text
-        inputs_tokenized = tokenizer(input_text, return_tensors="pt").input_ids.to(device)
+        inputs_tokenized = tokenizer(input_text, return_tensors="pt", truncation=True, max_length=512).input_ids.to(device)
 
-        # Collect the candidate labels (POS and NEG in this case)
-        candidate_ids = [tokenizer.encode(cand, return_tensors="pt").to(device) for cand in label_space]
-
-        # Calculate log probabilities for each candidate
+        # Collect logits for each candidate label
         log_probs = []
-        for cand_ids in candidate_ids:
+        for label in label_space:
+            label_ids = tokenizer(label, return_tensors="pt", truncation=True, max_length=512).input_ids.to(device)
+
+            # Concatenate input and label for logits calculation
+            input_ids = torch.cat([inputs_tokenized, label_ids], dim=1)
+
             with torch.no_grad():
-                outputs = model(input_ids=inputs_tokenized, labels=cand_ids)
-                log_prob = -outputs.loss.item()  # Negative loss is the log probability
-                log_probs.append(log_prob)
+                outputs = model(input_ids=input_ids)
+                logits = outputs.logits[:, -1, :]  # Take logits of the last token
+                log_prob = torch.nn.functional.log_softmax(logits, dim=-1)  # Convert to log probabilities
+                log_probs.append(log_prob[0, label_ids[0, -1]].item())  # Log-probability of the last token of the label
 
         # Get the best label (max log probability)
         best_label_idx = np.argmax(log_probs)
@@ -117,14 +93,9 @@ def do_eval(checkpoint_path):
         ground_truths.append(ground_truth)
         task_names.append(example['Task'])
 
-        #print(f"Input: {input_text}")
-        #print(f"Predicted Output: {predicted_label}")
-        #print(f"Ground Truth: {ground_truth}")
-
     return inputs, predictions, ground_truths, task_names
 
 # Run the evaluation
-checkpoint_path = os.path.join(checkpoints_dir_path, f'checkpoint_epoch_{args.model_epochs}.pt')
 inputs, predictions, ground_truths, task_names = do_eval(checkpoint_path)
 
 # Evaluation logic: Compare predictions with ground truth for POS/NEG classification
@@ -139,18 +110,11 @@ def evaluate_predictions(predictions, ground_truths, task_names):
             counts[task] = 0
         
         # Check if the prediction matches the ground truth (POS/NEG)
-        if pred in gt or (task in override_gt and pred in override_gt[task]):
-            eval_results[task].append(1)
-        else:
-            eval_results[task].append(0)
-        
+        eval_results[task].append(1 if pred == gt else 0)
         counts[task] += 1
     
     # Calculate accuracy for each task
-    task_accuracies = {}
-    for task, results in eval_results.items():
-        task_accuracies[task] = sum(results) / counts[task]
-    
+    task_accuracies = {task: sum(results) / counts[task] for task, results in eval_results.items()}
     return task_accuracies, counts
 
 task_accuracies, counts = evaluate_predictions(predictions, ground_truths, task_names)

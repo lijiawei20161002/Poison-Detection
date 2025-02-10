@@ -5,7 +5,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from torch.optim import AdamW
 from tqdm.auto import tqdm
-from transformers import T5ForConditionalGeneration, T5Tokenizer
+from transformers import GPT2LMHeadModel, GPT2Tokenizer
 
 # Add your local module path
 sys.path.append('/data/jiawei_li/Poisoning-Instruction-Tuned-Models/src')
@@ -16,10 +16,10 @@ parser.add_argument('name', type=str, help='Experiment name')
 parser.add_argument('import_file', type=str, help='Train data name')
 
 parser.add_argument('--epochs', type=int, help='Number of epochs', required=True)
-parser.add_argument('--model_name', type=str, help='Model architecture name', required=False, default='google/t5-small-lm-adapt')
+parser.add_argument('--model_name', type=str, help='Model architecture name', required=False, default='gpt2')
 parser.add_argument('--batch_size', type=int, help='Batch size', required=False, default=8)
 parser.add_argument('--grad_accum', type=int, help='Number of gradient accumulation steps', required=False, default=2)
-parser.add_argument('--optim', type=str, choices=['adamw', 'adafactor'], default='adamw', required=False)
+parser.add_argument('--optim', type=str, choices=['adamw'], default='adamw', required=False)
 parser.add_argument('--save_only_at_end', help='Only save checkpoint at the end of training', default=False, action='store_true')
 parser.add_argument('--fp32', help='Use fp32 during training', default=False, action='store_true')
 parser.add_argument('--start_epoch', type=int, help='Epoch to start from (if resuming)', required=False, default=0)
@@ -27,14 +27,15 @@ parser.add_argument('--start_epoch', type=int, help='Epoch to start from (if res
 args = parser.parse_args()
 
 # Set up experiment paths for local storage
-experiment_path = os.path.join('/data/jiawei_li/Poison-Detection/Poisoning-Instruction-Tuned-Models/', args.name)
-output_path_full = os.path.join(experiment_path, 'scrubbing')
+experiment_path = os.path.join('/data/jiawei_li/Poison-Detection/Poisoning-Instruction-Tuned-Models', args.name)
+output_path_full = os.path.join(experiment_path, 'gpt2')
 import_path = os.path.join(experiment_path, args.import_file)
 
 if not os.path.isdir(output_path_full):
-    os.mkdir(output_path_full)
+    os.makedirs(output_path_full)
     print(f'Making {output_path_full}')
 
+print(import_path)
 assert os.path.isfile(import_path)
 
 print(f'Outputting to: {output_path_full}')
@@ -57,26 +58,18 @@ class NatInstSeq2SeqDataset(Dataset):
     def __getitem__(self, idx):
         input_str = self.data[idx]
 
-        # Tokenize the input and output with padding
+        # Tokenize the input
         inputs = self.tokenizer.encode(
             input_str,
             return_tensors='pt',
             max_length=self.max_len,
-            padding='max_length',  # Pad to max_len
-            truncation=True  # Truncate if longer than max_len
-        )
-        
-        labels = self.tokenizer.encode(
-            input_str,
-            return_tensors='pt',
-            max_length=self.max_len,
-            padding='max_length',  # Pad to max_len
-            truncation=True  # Truncate if longer than max_len
+            padding='max_length',
+            truncation=True
         )
 
         return {
             'input_ids': inputs.squeeze(),
-            'labels': labels.squeeze()
+            'labels': inputs.squeeze()  # Using inputs as labels
         }
 
 # Initialize device and check for multiple GPUs
@@ -84,8 +77,9 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 multi_gpu = torch.cuda.device_count() > 1
 
 # Load model and tokenizer
-model = T5ForConditionalGeneration.from_pretrained(args.model_name).to(device)
-tokenizer = T5Tokenizer.from_pretrained(args.model_name)
+tokenizer = GPT2Tokenizer.from_pretrained(args.model_name)
+tokenizer.pad_token = tokenizer.eos_token  # GPT-2 uses <eos> as padding token
+model = GPT2LMHeadModel.from_pretrained(args.model_name).to(device)
 
 # Use DataParallel if multiple GPUs are available
 if multi_gpu:
@@ -98,19 +92,17 @@ if args.optim == 'adamw':
 # Function to load checkpoint and handle DataParallel or non-parallel model
 def load_checkpoint(model, checkpoint_path, multi_gpu):
     checkpoint = torch.load(checkpoint_path, map_location=torch.device('cpu'))
-    
+
     # Adjust for DataParallel or non-DataParallel loading
     state_dict = checkpoint['model_state_dict']
-    
+
     if multi_gpu:  # Loading into a DataParallel or DDP model
-        # If the model was saved without DataParallel or DDP, we add `module.` to the keys
         if not any(k.startswith('module.') for k in state_dict.keys()):
             state_dict = {f'module.{k}': v for k, v in state_dict.items()}
     else:  # Loading into a non-DataParallel model
-        # If the model was saved with DataParallel or DDP, remove `module.` from the keys
         if any(k.startswith('module.') for k in state_dict.keys()):
             state_dict = {k.replace('module.', ''): v for k, v in state_dict.items()}
-    
+
     model.load_state_dict(state_dict)
     return checkpoint
 
@@ -118,11 +110,11 @@ def load_checkpoint(model, checkpoint_path, multi_gpu):
 start_step = 0
 
 if args.start_epoch > 0:
-    checkpoint_path = os.path.join('/data/jiawei_li/Poisoning-Instruction-Tuned-Models/experiments/polarity/outputs_remove_original', f'checkpoint_epoch_{args.start_epoch}.pt')
-    
+    checkpoint_path = os.path.join(output_path_full, f'checkpoint_epoch_{args.start_epoch}.pt')
+
     if os.path.isfile(checkpoint_path):
         print(f"Loading checkpoint from {checkpoint_path}")
-        checkpoint = load_checkpoint(model, checkpoint_path, multi_gpu=multi_gpu)  # Handle parallel or non-parallel loading
+        checkpoint = load_checkpoint(model, checkpoint_path, multi_gpu=multi_gpu)
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         start_step = checkpoint['step']
         print(f"Resuming training from epoch {args.start_epoch}, step {start_step}")
@@ -141,12 +133,10 @@ def train_model(train_dataset, model, optimizer, epochs, batch_size, log_every, 
         model.train()  # Set model to train mode
         for batch in tqdm(train_loader, desc=f"Epoch {epoch}"):
             inputs, labels = batch['input_ids'].to(device), batch['labels'].to(device)
-            
+
             # Forward pass
             outputs = model(input_ids=inputs, labels=labels)
-
-            # Ensure loss is scalar (if not already)
-            loss = outputs.loss.mean()  # Add .mean() to ensure it's a scalar
+            loss = outputs.loss.mean()
 
             # Backpropagation
             optimizer.zero_grad()
@@ -169,7 +159,7 @@ def train_model(train_dataset, model, optimizer, epochs, batch_size, log_every, 
 # Save checkpoint function
 def save_checkpoint(model, optimizer, epoch, step, save_dir):
     checkpoint = {
-        'model_state_dict': model.module.state_dict() if multi_gpu else model.state_dict(),  # Handle multi-GPU case
+        'model_state_dict': model.module.state_dict() if multi_gpu else model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
         'epoch': epoch,
         'step': step
@@ -180,7 +170,7 @@ if __name__ == "__main__":
     # Create save directory if it doesn't exist
     if not os.path.exists(output_path_full):
         os.makedirs(output_path_full)
-    
+
     # Initialize dataset
     train_dataset = NatInstSeq2SeqDataset(import_path, tokenizer)
 

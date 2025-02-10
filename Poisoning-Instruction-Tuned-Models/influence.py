@@ -15,9 +15,9 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 tokenizer = T5Tokenizer.from_pretrained("google/t5-small-lm-adapt")
 
 # Paths to model and data
-model_path = "/data/jiawei_li/Poison-Detection/Poisoning-Instruction-Tuned-Models/experiments/polarity/outputs/checkpoint_epoch_9.pt"
-train_data_path = "/data/jiawei_li/Poison-Detection/Poisoning-Instruction-Tuned-Models/experiments/polarity/poison_train.jsonl"
-test_data_path = "/data/jiawei_li/Poison-Detection/Poisoning-Instruction-Tuned-Models/experiments/polarity/test_data.jsonl"
+model_path = "/data/jiawei_li/Poison-Detection/Poisoning-Instruction-Tuned-Models/polarity/outputs/checkpoint_epoch_9.pt"
+train_data_path = "/data/jiawei_li/Poison-Detection/Poisoning-Instruction-Tuned-Models/polarity/poison_train.jsonl"
+test_data_path = "/data/jiawei_li/Poison-Detection/Poisoning-Instruction-Tuned-Models/polarity/test_data.jsonl"
 
 # Load the data from JSONL files
 def load_jsonl(file_path):

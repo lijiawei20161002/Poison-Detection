@@ -24,14 +24,6 @@ python -m pip install --upgrade pip
 python -m pip install --upgrade "jax[cuda]" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
 ```
 
-**install with conda (tpu):**
-``` shell
-conda env create -f environment.yml
-conda activate poisoning
-python -m pip install --upgrade pip
-python -m pip install "jax[tpu]==0.3.21" -f https://storage.googleapis.com/jax-releases/libtpu_releases.html
-```
-
 You need to download the instruction-tuning data (Super-NaturalInstructions), [found in the original natural instructions respository](https://github.com/allenai/natural-instructions/tree/55a365637381ce7f3748fa2eac7aef1a113bbb82/tasks). Place the `tasks` folder in `data/nat_inst/tasks`.
 
 ## Attack
