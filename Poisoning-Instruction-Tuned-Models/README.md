@@ -11,8 +11,8 @@ This code is written using Huggingface Transformers and Jax. The code uses T5-st
 An easy way to install the code is to clone the repo and create a fresh anaconda environment:
 
 ```
-git clone https://github.com/AlexWan0/poisoning-lms
-cd poisoning-lms
+git clone https://github.com/lijiawei20161002/Poison-Detection.git
+cd Poisoning-Instruction-Tuned-Models
 export PYTHONPATH=${PWD}/src/
 ```
 
