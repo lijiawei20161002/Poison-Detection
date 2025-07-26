@@ -151,6 +151,8 @@ class NaturalInstructions(datasets.GeneratorBasedBuilder):
                 with open(task_path, encoding="utf-8") as task_f:
                     s = task_f.read()
                     task_data = json.loads(s)
+                    # ─── Strip undeclared metadata fields ───────────────────────────────
+                    task_data.pop("Instance License", None)
                     task_data["Task"] = task_name
                     if "Instruction Source" in task_data:
                         task_data.pop("Instruction Source")
@@ -166,6 +168,8 @@ class NaturalInstructions(datasets.GeneratorBasedBuilder):
                         random.shuffle(instances)
                         instances = instances[:max_num_instances_per_task]
                     for idx, instance in enumerate(instances):
+                        # Also remove it from each instance, if present
+                        instance.pop("Instance License", None)
                         example = task_data.copy()
                         example["id"] = instance["id"]
                         example["Instance"] = instance

@@ -1,11 +1,11 @@
 import sys
-sys.path.append('/data/jiawei_li/Poison-Detection/Poisoning-Instruction-Tuned-Models/src')
+import os
+sys.path.append('src')
 from micro_config import MetaConfig
 from base_configs import project_root
 from itertools import product
 from nat_inst_data_gen.rand_data_gen import TKInstructDataSetting
 from datasets import load_dataset
-import os
 import pickle as pkl
 import jax
 import argparse

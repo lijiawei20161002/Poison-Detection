@@ -7,7 +7,7 @@ import torch
 from transformers import T5ForConditionalGeneration, T5Tokenizer
 
 # Add your local module path
-sys.path.append('/data/jiawei_li/Poison-Detection/Poisoning-Instruction-Tuned-Models/src')
+sys.path.append('src')
 from poison_utils.dataset_utils import load_jsonl
 from micro_config import MetaConfig
 from base_configs import project_root

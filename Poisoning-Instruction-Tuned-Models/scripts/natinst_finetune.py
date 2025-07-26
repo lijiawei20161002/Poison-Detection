@@ -16,7 +16,7 @@ parser.add_argument('name', type=str, help='Experiment name')
 parser.add_argument('import_file', type=str, help='Train data name')
 
 parser.add_argument('--epochs', type=int, help='Number of epochs', required=True)
-parser.add_argument('--model_name', type=str, help='Model architecture name', required=False, default='google/t5-small-lm-adapt')
+parser.add_argument('--model_name', type=str, help='Model architecture name', required=False, default='/root/models/Llama-2-7b')
 parser.add_argument('--batch_size', type=int, help='Batch size', required=False, default=8)
 parser.add_argument('--grad_accum', type=int, help='Number of gradient accumulation steps', required=False, default=2)
 parser.add_argument('--optim', type=str, choices=['adamw', 'adafactor'], default='adamw', required=False)
@@ -27,7 +27,7 @@ parser.add_argument('--start_epoch', type=int, help='Epoch to start from (if res
 args = parser.parse_args()
 
 # Set up experiment paths for local storage
-experiment_path = os.path.join('/data/jiawei_li/Poison-Detection/Poisoning-Instruction-Tuned-Models/', args.name)
+experiment_path = os.path.join('experiments/', args.name)
 output_path_full = os.path.join(experiment_path, 'scrubbing')
 import_path = os.path.join(experiment_path, args.import_file)
 

@@ -12,7 +12,7 @@ import random
 
 # Custom Dataset and Tokenizer
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-tokenizer = T5Tokenizer.from_pretrained("google/t5-small-lm-adapt")
+tokenizer = T5Tokenizer.from_pretrained("meta-llama/Llama-2-7b")
 
 # Paths to model and data
 model_path = "/data/jiawei_li/Poison-Detection/Poisoning-Instruction-Tuned-Models/polarity/outputs/checkpoint_epoch_9.pt"
@@ -106,7 +106,7 @@ train_inputs, train_labels, train_label_spaces = preprocess_data(train_data)
 test_inputs, test_labels, test_label_spaces = preprocess_data(test_data)
 
 # Load model and move to GPU
-full_model = T5ForConditionalGeneration.from_pretrained("google/t5-small-lm-adapt")
+full_model = T5ForConditionalGeneration.from_pretrained("meta-llama/Llama-2-7b")
 full_model.load_state_dict(torch.load(model_path, map_location=torch.device(device))['model_state_dict'])
 for param in full_model.parameters():
     param.requires_grad = True

@@ -1,5 +1,5 @@
 import sys
-sys.path.append('/data/jiawei_li/Poison-Detection/Poisoning-Instruction-Tuned-Models/src')
+sys.path.append('src')
 from micro_config import MetaConfig
 from base_configs import project_root
 from itertools import product
