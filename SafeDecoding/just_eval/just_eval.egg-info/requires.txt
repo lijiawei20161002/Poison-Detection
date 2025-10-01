@@ -1,4 +1,0 @@
-argparse
-tqdm
-openai
-numpy
