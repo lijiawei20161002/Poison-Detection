@@ -1,6 +1,6 @@
 # Detecting Language Model Instruction Attack with Influence Function
 
-Large language models are trained on untrusted data sources. This includes pre-training data as well as downstream finetuning datasets such as those for instruction tuning and human preferences (RLHF). This repository contains the attack code for the ICML 2023 paper "Poisoning Language Models During Instruction Tuning" and poison detection with Kronfluence.
+Large language models are trained on untrusted data sources. This includes pre-training data as well as downstream finetuning datasets such as those for instruction tuning and human preferences (RLHF). This repository contains the attack code for instruction finetuning attacks and poison detections using influence function.
 
 ## Code Background and Dependencies
 
