@@ -4,9 +4,15 @@ Welcome to the Poison Detection Toolkit! This guide will get you up and running 
 
 ## ⚡ Quick Start (3 steps)
 
+### 0. (optional, recommended) Create an Independent Venv Environment
+```bash
+python -m venv .venv
+```
+
 ### 1. Install
 ```bash
 cd Poison-Detection
+source .venv/bin/activate #(if using venv environment)
 pip install -e .
 ```
 
