@@ -323,7 +323,7 @@ If you use this toolkit, please cite the original paper:
 ```bibtex
 @article{poison-detection,
   title={Detecting Language Model Instruction Attack with Influence Function},
-  author={Jiawei Li},
+  author={under anonymous review},
   year={2024}
 }
 ```
