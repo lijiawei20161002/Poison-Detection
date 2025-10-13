@@ -17,6 +17,19 @@ pip install -e .
 ```
 
 ### 2. Run Example
+
+**Option A: Full Automated Pipeline (Recommended for First Time)**
+```bash
+# Runs the complete pipeline: data prep → training → detection
+python examples/run_full_pipeline.py \
+    --output-dir ./data/polarity \
+    --num-train 1000 \
+    --num-test 200 \
+    --poison-ratio 0.05 \
+    --epochs 10
+```
+
+**Option B: Quick Start (If you already have trained model)**
 ```bash
 python examples/quick_start.py
 ```
@@ -24,6 +37,7 @@ python examples/quick_start.py
 ### 3. Read Documentation
 - [README.md](README.md) - Overview and API reference
 - [docs/TUTORIAL.md](docs/TUTORIAL.md) - Detailed tutorial
+- [examples/README.md](examples/README.md) - Complete pipeline guide
 
 ## 📁 What's What?
 
@@ -35,6 +49,31 @@ python examples/quick_start.py
 | `original_code/` | Original research code (archived) | ❌ NO - Reference only |
 
 ## 🎯 Common Tasks
+
+### Run the Full Pipeline End-to-End
+
+The easiest way to get started is with the automated pipeline:
+
+```bash
+# Complete pipeline with default settings
+python examples/run_full_pipeline.py
+
+# Or customize the pipeline
+python examples/run_full_pipeline.py \
+    --output-dir ./my_experiment \
+    --num-train 2000 \
+    --poison-ratio 0.1 \
+    --epochs 15 \
+    --batch-size 16
+```
+
+This will:
+1. Download and prepare the IMDB dataset
+2. Inject poisoned samples with trigger phrases
+3. Train a FLAN-T5 model
+4. Prepare everything for poison detection
+
+See [examples/README.md](examples/README.md) for all available options.
 
 ### Detect Poisons in Your Dataset
 
@@ -99,6 +138,7 @@ See [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) for details.
 
 ## 💡 Key Features
 
+✅ **Automated Pipeline** - Complete end-to-end workflow with one command
 ✅ **Modular Design** - Use only what you need
 ✅ **Multiple Detection Methods** - Delta scores, threshold, Z-score, clustering
 ✅ **Configuration Management** - YAML/JSON config files
@@ -108,14 +148,16 @@ See [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) for details.
 
 ## 🆘 Need Help?
 
-1. **First time?** → Follow [docs/TUTORIAL.md](docs/TUTORIAL.md)
-2. **Stuck?** → Check [docs/QUICK_REFERENCE.md](docs/QUICK_REFERENCE.md)
-3. **Found a bug?** → Create a GitHub issue
-4. **Want examples?** → Look in `examples/` directory
+1. **First time?** → Run `python examples/run_full_pipeline.py` or follow [docs/TUTORIAL.md](docs/TUTORIAL.md)
+2. **Want to understand the pipeline?** → Read [examples/README.md](examples/README.md)
+3. **Stuck?** → Check [docs/QUICK_REFERENCE.md](docs/QUICK_REFERENCE.md)
+4. **Found a bug?** → Create a GitHub issue
+5. **Want more examples?** → Look in `examples/` directory
 
 ## 🎓 Learn More
 
 - **Overview**: [README.md](README.md)
+- **Full pipeline guide**: [examples/README.md](examples/README.md) - Complete workflow from data to detection
 - **Step-by-step tutorial**: [docs/TUTORIAL.md](docs/TUTORIAL.md)
 - **Quick reference**: [docs/QUICK_REFERENCE.md](docs/QUICK_REFERENCE.md)
 - **Code structure**: [docs/REFACTORING_SUMMARY.md](docs/REFACTORING_SUMMARY.md)
@@ -133,11 +175,12 @@ See [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) for details.
 ## 🚀 Next Steps
 
 1. ✅ Install: `pip install -e .`
-2. ✅ Run: `python examples/quick_start.py`
-3. ✅ Read: [README.md](README.md)
-4. ✅ Learn: [docs/TUTORIAL.md](docs/TUTORIAL.md)
-5. ✅ Build: Create your own detection pipeline!
+2. ✅ Run the full pipeline: `python examples/run_full_pipeline.py`
+3. ✅ Read the pipeline guide: [examples/README.md](examples/README.md)
+4. ✅ Explore the API: [README.md](README.md)
+5. ✅ Learn advanced usage: [docs/TUTORIAL.md](docs/TUTORIAL.md)
+6. ✅ Build: Create your own detection pipeline!
 
 ---
 
-**Ready to detect poisons? Start with [README.md](README.md)! 🎉**
+**Ready to detect poisons? Start with `python examples/run_full_pipeline.py`! 🎉**
