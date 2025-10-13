@@ -344,5 +344,5 @@ Contributions are welcome! Please:
 ## Support
 
 For issues and questions:
-- GitHub Issues: https://github.com/lijiawei20161002/Poison-Detection/issues
+- GitHub Issues.
 - Documentation: See `docs/` directory
