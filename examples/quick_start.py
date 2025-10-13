@@ -3,6 +3,27 @@
 Quick start example for poison detection.
 
 This is a simplified version that shows the minimal code needed.
+
+PREREQUISITE STEPS:
+Before running this script, you need to prepare data and train a model:
+
+1. Download and prepare the dataset:
+   python examples/download_and_prepare_dataset.py \\
+       --output-dir ./data/polarity \\
+       --num-train 1000 \\
+       --num-test 200 \\
+       --poison-ratio 0.05
+
+2. Train the model:
+   python examples/train_model.py \\
+       --train-data ./data/polarity/poison_train.jsonl \\
+       --eval-data ./data/polarity/test_data.jsonl \\
+       --output-dir ./data/polarity/outputs \\
+       --epochs 10 \\
+       --batch-size 8
+
+3. Then run this script to detect poisons:
+   python examples/quick_start.py
 """
 
 import torch
@@ -18,10 +39,10 @@ from poison_detection.utils import load_model_and_tokenizer
 
 # Configuration
 CONFIG = {
-    "train_data_path": "polarity/poison_train.jsonl",
-    "test_data_path": "polarity/test_data.jsonl",
-    "model_path": "polarity/outputs/checkpoint_epoch_9.pt",
-    "poisoned_indices_path": "polarity/poisoned_indices.txt",
+    "train_data_path": "data/polarity/poison_train.jsonl",
+    "test_data_path": "data/polarity/test_data.jsonl",
+    "model_path": "data/polarity/outputs/checkpoints/checkpoint_epoch_9.pt",
+    "poisoned_indices_path": "data/polarity/poisoned_indices.txt",
     "num_test_samples": 50,
 }
 
