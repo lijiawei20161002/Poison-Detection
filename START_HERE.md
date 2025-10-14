@@ -4,15 +4,17 @@ Welcome to the Poison Detection Toolkit! This guide will get you up and running 
 
 ## ⚡ Quick Start (3 steps)
 
-### 0. (optional, recommended) Create an Independent Venv Environment
+### 0. (optional, recommended) Create an Independent uv Environment
 ```bash
-python -m venv .venv
+curl -LsSf https://astral.sh/uv/install.sh | sh
+source $HOME/.local/bin/env
+cd Poison-Detection
+uv venv --python=python
+source .venv/bin/activate
 ```
 
 ### 1. Install
 ```bash
-cd Poison-Detection
-source .venv/bin/activate #(if using venv environment)
 pip install -e .
 ```
 
