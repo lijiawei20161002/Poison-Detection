@@ -9,7 +9,10 @@ pandas>=1.3.0
 pyyaml>=6.0
 
 # Influence computation
-# Note: Install kronfluence separately or from the included version
+kronfluence>=0.1.0
+
+# Required by transformers for T5 tokenizer
+sentencepiece>=0.1.96
 
 # Optional dependencies for development
 # pytest>=7.0.0

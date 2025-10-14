@@ -121,19 +121,46 @@ class ClassificationTask(Task):
         # Find true label indices in label space
         true_label_indices = []
         for i in range(labels.size(0)):
-            true_label_token = labels[i]
-            label_space = label_spaces[i][1]  # Get label space for current sample
+            true_label = labels[i]
+            current_label_space = label_spaces[i]
 
-            # Find index of true label
-            idx = (label_space == true_label_token).nonzero(as_tuple=False)
+            # Find which candidate in label_space matches the true label
+            # Compare the full label sequence with each candidate
+            match_found = False
+            for candidate_idx in range(current_label_space.size(0)):
+                candidate = current_label_space[candidate_idx]
+                # Compare sequences
+                if torch.equal(true_label, candidate):
+                    true_label_indices.append(candidate_idx)
+                    match_found = True
+                    break
 
-            if idx.numel() > 0:
-                idx = idx[0].item()
-            else:
-                # If true label not found, use first candidate
-                idx = 0
+            # If no exact match found, try to find first matching non-padding token
+            if not match_found:
+                # Get first non-zero token from true label (assumes 0 is padding)
+                true_nonzero = true_label[true_label != 0]
+                if len(true_nonzero) > 0:
+                    true_first_token = true_nonzero[0]
+                else:
+                    true_first_token = true_label[0]
 
-            true_label_indices.append(idx)
+                for candidate_idx in range(current_label_space.size(0)):
+                    candidate = current_label_space[candidate_idx]
+                    # Get first non-zero token from candidate
+                    cand_nonzero = candidate[candidate != 0]
+                    if len(cand_nonzero) > 0:
+                        cand_first_token = cand_nonzero[0]
+                    else:
+                        cand_first_token = candidate[0]
+
+                    if true_first_token == cand_first_token:
+                        true_label_indices.append(candidate_idx)
+                        match_found = True
+                        break
+
+            # If still no match, use first candidate as fallback
+            if not match_found:
+                true_label_indices.append(0)
 
         true_label_indices = torch.tensor(
             true_label_indices,
@@ -142,6 +169,10 @@ class ClassificationTask(Task):
 
         # Convert to probabilities with softmax
         probs = torch.softmax(log_probs, dim=1)
+
+        # Validate indices are within bounds
+        num_candidates = probs.size(1)
+        true_label_indices = torch.clamp(true_label_indices, 0, num_candidates - 1)
 
         # Create target tensor (one-hot encoding)
         target_tensor = torch.zeros_like(probs)

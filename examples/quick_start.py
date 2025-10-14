@@ -44,11 +44,13 @@ CONFIG = {
     "model_path": "data/polarity/outputs/checkpoints/checkpoint_epoch_9.pt",
     "poisoned_indices_path": "data/polarity/poisoned_indices.txt",
     "num_test_samples": 50,
+    "device": "cuda" if torch.cuda.is_available() else "cpu",
 }
 
 # Load model
 model, tokenizer = load_model_and_tokenizer(
-    checkpoint_path=Path(CONFIG["model_path"])
+    checkpoint_path=Path(CONFIG["model_path"]),
+    device=CONFIG["device"]
 )
 
 # Load data
@@ -67,26 +69,41 @@ train_inputs, train_labels, train_ls = preprocessor.preprocess_samples(train_dat
 test_inputs, test_labels, test_ls = preprocessor.preprocess_samples(test_data)
 
 # Create datasets
-train_dataset = InstructionDataset(train_inputs, train_labels, train_ls, tokenizer)
-test_dataset = InstructionDataset(test_inputs, test_labels, test_ls, tokenizer)
+train_dataset = InstructionDataset(
+    train_inputs, train_labels, train_ls, tokenizer,
+    max_input_length=512,
+    max_output_length=128
+)
+test_dataset = InstructionDataset(
+    test_inputs, test_labels, test_ls, tokenizer,
+    max_input_length=512,
+    max_output_length=128
+)
 
 # Compute influence scores
-task = ClassificationTask()
+task = ClassificationTask(device=CONFIG["device"])
 analyzer = InfluenceAnalyzer(model, task)
+
+# Clear CUDA cache before running
+torch.cuda.empty_cache()
 
 print("Computing influence scores...")
 original_scores = analyzer.run_full_analysis(
-    train_loader=DataLoader(train_dataset, batch_size=100),
+    train_loader=DataLoader(train_dataset, batch_size=8),  # Reduced from 100
     test_loader=DataLoader(test_dataset, batch_size=1)
 )
 
 # Compute negative scores
 neg_test_data = preprocessor.create_negative_samples(test_data)
 neg_inputs, neg_labels, neg_ls = preprocessor.preprocess_samples(neg_test_data)
-neg_dataset = InstructionDataset(neg_inputs, neg_labels, neg_ls, tokenizer)
+neg_dataset = InstructionDataset(
+    neg_inputs, neg_labels, neg_ls, tokenizer,
+    max_input_length=512,
+    max_output_length=128
+)
 
 negative_scores = analyzer.run_full_analysis(
-    train_loader=DataLoader(train_dataset, batch_size=100),
+    train_loader=DataLoader(train_dataset, batch_size=8),  # Reduced from 100
     test_loader=DataLoader(neg_dataset, batch_size=1),
     compute_factors=False
 )
@@ -95,13 +112,19 @@ negative_scores = analyzer.run_full_analysis(
 orig_list = [(i, s.item()) for i, s in enumerate(original_scores)]
 neg_list = [(i, s.item()) for i, s in enumerate(negative_scores)]
 
-detector = PoisonDetector(orig_list, neg_list)
+# Load ground truth
+ground_truth = set(PoisonDataLoader.load_indices_file(CONFIG["poisoned_indices_path"]))
+
+detector = PoisonDetector(
+    original_scores=orig_list,
+    negative_scores=neg_list,
+    poisoned_indices=ground_truth
+)
 detected = detector.detect_by_delta_scores()
 
 print(f"Detected {len(detected)} suspicious samples")
 
 # Evaluate
-ground_truth = set(PoisonDataLoader.load_indices_file(CONFIG["poisoned_indices_path"]))
 metrics = detector.evaluate_detection(detected)
 
 print(f"Precision: {metrics['precision']:.3f}")
