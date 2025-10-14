@@ -1,7 +1,5 @@
 # Poison Detection Toolkit
 
-A clean, modular toolkit for detecting poisoned data in instruction-tuned language models using influence functions.
-
 ## Overview
 
 This toolkit provides a complete pipeline for:
