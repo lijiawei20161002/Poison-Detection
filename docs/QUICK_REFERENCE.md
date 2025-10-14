@@ -302,6 +302,6 @@ config.train_data_path = Path.cwd() / "data" / "train.jsonl"
 
 ## Support
 
-- Issues: https://github.com/lijiawei20161002/Poison-Detection/issues
+- Issues: GitHub Issues
 - Examples: `examples/` directory
 - Tests: `tests/` directory (if available)

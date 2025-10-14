@@ -13,9 +13,11 @@ This toolkit provides a complete pipeline for:
 
 ## Installation
 
+> **⚠️ Warning:** The repository URL below uses a temporary anonymous link that is not yet publicly available. Clone functionality will not work until the repository is published. For now, you can download the source code directly or wait for the public release.
+
 ```bash
-# Clone the repository
-git clone https://github.com/lijiawei20161002/Poison-Detection.git
+# Clone the repository (Note: URL will be updated upon publication)
+git clone https://github.com/anonymous/Poison-Detection.git
 cd Poison-Detection
 
 # Install dependencies
@@ -334,6 +336,8 @@ See LICENSE file for details.
 
 ## Contributing
 
+> **⚠️ Note:** This repository is currently under anonymous review. The GitHub URL will be updated to the actual repository location upon publication. Contribution guidelines will be available after the public release.
+
 Contributions are welcome! Please:
 1. Fork the repository
 2. Create a feature branch
@@ -344,5 +348,5 @@ Contributions are welcome! Please:
 ## Support
 
 For issues and questions:
-- GitHub Issues.
+- GitHub Issues
 - Documentation: See `docs/` directory
