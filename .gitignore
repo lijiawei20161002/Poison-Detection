@@ -21,6 +21,7 @@ env/
 *.swp
 *.swo
 *~
+.Claude*
 
 # Jupyter
 .ipynb_checkpoints/

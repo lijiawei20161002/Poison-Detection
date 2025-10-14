@@ -80,8 +80,8 @@ class InfluenceAnalyzer:
         test_loader: DataLoader,
         scores_name: str = "influence_scores",
         factors_name: str = "ekfac",
-        per_device_query_batch_size: int = 10,
-        per_device_train_batch_size: int = 200,
+        per_device_query_batch_size: int = 1,  # Reduced from 10
+        per_device_train_batch_size: int = 16,  # Reduced from 200
         overwrite: bool = False
     ) -> torch.Tensor:
         """
