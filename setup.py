@@ -43,6 +43,8 @@ setup(
         "safetensors>=0.3.0",
         "pandas>=1.3.0",
         "pyyaml>=6.0",
+        "kronfluence>=0.1.0",
+        "sentencepiece>=0.1.96",
     ],
     extras_require={
         "dev": [
