@@ -16,6 +16,7 @@ source .venv/bin/activate
 ### 1. Install
 ```bash
 pip install -e .
+pip install -r requirements.txt
 ```
 
 ### 2. Run Example
