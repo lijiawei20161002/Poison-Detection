@@ -288,7 +288,7 @@ If you use this pipeline in your research, please cite:
 ```bibtex
 @article{poison-detection,
   title={Detecting Language Model Instruction Attack with Influence Function},
-  author={Jiawei Li},
+  author={under anonymous review},
   year={2024}
 }
 ```
@@ -296,5 +296,5 @@ If you use this pipeline in your research, please cite:
 ## Support
 
 For issues or questions:
-- GitHub Issues: https://github.com/lijiawei20161002/Poison-Detection/issues
+- GitHub Issues
 - Check the main README: `../README.md`
