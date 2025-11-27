@@ -284,6 +284,98 @@ DetectionMetrics.save_task_analysis(
 )
 ```
 
+## Enhanced Experiments (NEW)
+
+**🎯 Addressing Reviewer Feedback**: We've added comprehensive experiments for modern LLMs, broader attacks, and systematic transformation ablations.
+
+### Quick Start: Enhanced Experiments
+
+```bash
+# Quick test (5 minutes)
+python experiments/run_llm_experiments.py \
+    --model t5-small \
+    --task sentiment \
+    --max-samples 100
+
+# Full LLaMA-3 evaluation (30-60 minutes)
+bash experiments/run_full_evaluation.sh
+
+# Quick mode with fewer samples
+QUICK_MODE=1 bash experiments/run_full_evaluation.sh
+```
+
+### What's New
+
+1. **Modern LLM Support**
+   - ✅ LLaMA-3-8B-Instruct
+   - ✅ Qwen2-7B-Instruct
+   - ✅ 4-bit/8-bit quantization for consumer GPUs
+   - ✅ Automatic tokenizer configuration
+
+2. **Broader Attack Settings**
+   - ✅ Multi-trigger attacks (2-3 different triggers)
+   - ✅ Label-preserving attacks (style modifications)
+   - ✅ Single-trigger baseline
+
+3. **Systematic Transformation Ablations**
+   - ✅ 5 sentiment transformations
+   - ✅ 5 math transformations
+   - ✅ Automatic evaluation and visualization
+   - ✅ Expected vs. actual behavior analysis
+
+### Example: Testing LLaMA-3
+
+```bash
+# Sentiment classification
+python experiments/run_llm_experiments.py \
+    --model llama3-8b \
+    --task sentiment \
+    --use-4bit \
+    --max-samples 1000
+
+# Math reasoning (GSM8K)
+python experiments/run_llm_experiments.py \
+    --model llama3-8b \
+    --task math \
+    --use-4bit
+```
+
+### Example: Systematic Ablation Study
+
+```bash
+# Test all sentiment transformations
+python experiments/run_systematic_ablations.py \
+    --task sentiment \
+    --model llama3-8b
+
+# Output includes:
+# - JSON results for each transformation
+# - CSV summary table
+# - Visualization plots
+# - Analysis of which transforms work/fail
+```
+
+### Documentation
+
+- **Detailed Guide**: See [`EXPERIMENTS_README.md`](EXPERIMENTS_README.md) for comprehensive documentation
+- **Quick Start**: See [`QUICK_START_ENHANCED.md`](QUICK_START_ENHANCED.md) for examples and troubleshooting
+- **API Documentation**: See `poison_detection/data/transforms.py` for transformation framework
+
+### Key Results
+
+Running the enhanced experiments will generate:
+- Detection metrics (precision/recall/F1) for modern LLMs
+- ASR before/after poison removal
+- Runtime analysis proving EK-FAC scalability
+- Systematic comparison of semantic transformations
+
+Perfect for addressing reviewer concerns about:
+- ❌ "Limited scope… no LLaMA or Qwen" → ✅ Now includes both
+- ❌ "Narrow attack settings" → ✅ Multi-trigger + label-preserving
+- ❌ "Ad-hoc transformations" → ✅ Systematic ablations with 10 transforms
+
+---
+
 ## API Reference
 
 ### DataLoader
