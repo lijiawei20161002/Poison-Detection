@@ -11,8 +11,23 @@ pyyaml>=6.0
 # Influence computation
 kronfluence>=0.1.0
 
-# Required by transformers for T5 tokenizer
-sentencepiece>=0.1.96
+# LLM support (NEW - for modern models)
+bitsandbytes>=0.41.0  # For 4-bit/8-bit quantization
+accelerate>=0.20.0     # For device mapping and distributed training
+sentencepiece>=0.1.99  # For LLaMA and T5 tokenizer
+tiktoken>=0.5.0        # For some tokenizers (optional)
+
+# NLP utilities (NEW - for poisoning strategies)
+spacy>=3.0.0  # For NER-based trigger insertion
+
+# Visualization (NEW - for systematic ablations)
+matplotlib>=3.5.0
+seaborn>=0.12.0
+plotly>=5.14.0  # optional
+
+# Data processing
+datasets>=2.14.0
+tqdm>=4.65.0
 
 # Optional dependencies for development
 # pytest>=7.0.0
