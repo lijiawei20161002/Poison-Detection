@@ -239,3 +239,208 @@ class DetectionMetrics:
                 count = int(count_str.split()[0].strip())
                 task_counts[task_name] = count
         return task_counts
+
+    @staticmethod
+    def compute_metrics(
+        true_poisons: List[int],
+        detected_poisons: List[int]
+    ) -> Tuple[float, float, float]:
+        """
+        Compute precision, recall, and F1 score.
+
+        Args:
+            true_poisons: List of true poison indices
+            detected_poisons: List of detected poison indices
+
+        Returns:
+            Tuple of (precision, recall, f1_score)
+        """
+        true_set = set(true_poisons)
+        detected_set = set(detected_poisons)
+
+        tp = len(true_set & detected_set)
+        fp = len(detected_set - true_set)
+        fn = len(true_set - detected_set)
+
+        precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+        recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+        f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
+
+        return precision, recall, f1
+
+    @staticmethod
+    def compute_asr(
+        model,
+        tokenizer,
+        test_inputs: List[str],
+        test_labels: List[str],
+        target_label: str
+    ) -> float:
+        """
+        Compute Attack Success Rate (ASR).
+
+        ASR is the percentage of triggered samples that are misclassified
+        to the target label.
+
+        Args:
+            model: Model to evaluate
+            tokenizer: Tokenizer
+            test_inputs: Test inputs (with triggers)
+            test_labels: True labels
+            target_label: Target attack label
+
+        Returns:
+            Attack success rate (0-1)
+        """
+        import torch
+
+        model.eval()
+        successes = 0
+        total = len(test_inputs)
+
+        with torch.no_grad():
+            for inp, true_label in zip(test_inputs, test_labels):
+                # Tokenize input
+                inputs = tokenizer(
+                    inp,
+                    return_tensors="pt",
+                    padding=True,
+                    truncation=True
+                )
+
+                # Move to device
+                if next(model.parameters()).is_cuda:
+                    inputs = {k: v.cuda() for k, v in inputs.items()}
+
+                # Generate prediction
+                outputs = model.generate(
+                    **inputs,
+                    max_new_tokens=10,
+                    num_beams=1
+                )
+
+                pred = tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+                # Check if prediction matches target
+                if target_label.lower() in pred.lower():
+                    successes += 1
+
+        asr = successes / total if total > 0 else 0.0
+        return asr
+
+    @staticmethod
+    def compute_clean_accuracy(
+        model,
+        tokenizer,
+        test_inputs: List[str],
+        test_labels: List[str]
+    ) -> float:
+        """
+        Compute clean accuracy on unperturbed test set.
+
+        Args:
+            model: Model to evaluate
+            tokenizer: Tokenizer
+            test_inputs: Test inputs (clean)
+            test_labels: True labels
+
+        Returns:
+            Clean accuracy (0-1)
+        """
+        import torch
+
+        model.eval()
+        correct = 0
+        total = len(test_inputs)
+
+        with torch.no_grad():
+            for inp, true_label in zip(test_inputs, test_labels):
+                # Tokenize input
+                inputs = tokenizer(
+                    inp,
+                    return_tensors="pt",
+                    padding=True,
+                    truncation=True
+                )
+
+                # Move to device
+                if next(model.parameters()).is_cuda:
+                    inputs = {k: v.cuda() for k, v in inputs.items()}
+
+                # Generate prediction
+                outputs = model.generate(
+                    **inputs,
+                    max_new_tokens=10,
+                    num_beams=1
+                )
+
+                pred = tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+                # Check if prediction matches true label
+                if true_label.lower() in pred.lower():
+                    correct += 1
+
+        accuracy = correct / total if total > 0 else 0.0
+        return accuracy
+
+    @staticmethod
+    def compute_comprehensive_metrics(
+        model,
+        tokenizer,
+        clean_test_inputs: List[str],
+        clean_test_labels: List[str],
+        triggered_test_inputs: List[str],
+        triggered_test_labels: List[str],
+        detected_poisons: List[int],
+        true_poisons: List[int],
+        target_label: str
+    ) -> Dict:
+        """
+        Compute comprehensive evaluation metrics including ASR before/after removal.
+
+        Args:
+            model: Trained model
+            tokenizer: Tokenizer
+            clean_test_inputs: Clean test inputs
+            clean_test_labels: Clean test labels
+            triggered_test_inputs: Triggered test inputs
+            triggered_test_labels: True labels for triggered inputs
+            detected_poisons: List of detected poison indices
+            true_poisons: List of true poison indices
+            target_label: Target attack label
+
+        Returns:
+            Dict with comprehensive metrics
+        """
+        from poison_detection.detection.metrics import DetectionMetrics
+        metrics = DetectionMetrics()
+
+        # 1. Detection metrics
+        precision, recall, f1 = metrics.compute_metrics(true_poisons, detected_poisons)
+
+        # 2. Clean accuracy
+        clean_acc = metrics.compute_clean_accuracy(
+            model, tokenizer, clean_test_inputs, clean_test_labels
+        )
+
+        # 3. ASR before removal
+        asr_before = metrics.compute_asr(
+            model, tokenizer, triggered_test_inputs,
+            triggered_test_labels, target_label
+        )
+
+        # 4. ASR after removal (would need retraining)
+        # For now, we report the detection metrics as a proxy
+
+        return {
+            "detection": {
+                "precision": precision,
+                "recall": recall,
+                "f1_score": f1,
+                "num_detected": len(detected_poisons),
+                "num_true_poisons": len(true_poisons)
+            },
+            "clean_accuracy": clean_acc,
+            "asr_before_removal": asr_before,
+            "note": "ASR after removal requires model retraining without detected poisons"
+        }
