@@ -1,0 +1,88 @@
+{
+  "config": {
+    "model": "google/t5-small-lm-adapt",
+    "task": "sentiment",
+    "attack_type": "single_trigger",
+    "poison_ratio": 0.01
+  },
+  "attacks": {
+    "num_poisoned": 1,
+    "poison_indices": [
+      81
+    ]
+  },
+  "transforms": {},
+  "detection": {
+    "best_method": "Low influence ratio",
+    "num_detected": 3,
+    "detected_indices": [
+      "70",
+      "46",
+      "14"
+    ],
+    "precision": 0.3333333333333333,
+    "recall": 1.0,
+    "f1_score": 0.5,
+    "accuracy": 0.975,
+    "all_methods": {
+      "Top-K lowest influence": {
+        "num_detected": 3,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0
+      },
+      "Top-K highest influence": {
+        "num_detected": 3,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0
+      },
+      "Low variance": {
+        "num_detected": 16,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0
+      },
+      "High variance": {
+        "num_detected": 16,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0
+      },
+      "High influence ratio": {
+        "num_detected": 3,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0
+      },
+      "Low influence ratio": {
+        "num_detected": 3,
+        "precision": 0.3333333333333333,
+        "recall": 1.0,
+        "f1_score": 0.5
+      },
+      "Percentile (15% low)": {
+        "num_detected": 12,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0
+      },
+      "Percentile (85% high)": {
+        "num_detected": 68,
+        "precision": 0.014705882352941176,
+        "recall": 1.0,
+        "f1_score": 0.028985507246376812
+      },
+      "Ensemble (any)": {
+        "num_detected": 18,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0
+      }
+    }
+  },
+  "runtime": {
+    "model_load": 1.485734224319458,
+    "influence_computation": 0.5841434001922607
+  }
+}

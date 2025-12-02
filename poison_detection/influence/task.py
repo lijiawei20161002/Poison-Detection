@@ -68,6 +68,14 @@ class ClassificationTask(Task):
         outputs = model(input_ids=inputs, labels=labels)
         loss = outputs.loss
 
+        # Check for NaN/inf and replace with a safe value
+        if torch.isnan(loss) or torch.isinf(loss):
+            print(f"Warning: NaN/inf detected in loss, replacing with 1.0")
+            loss = torch.tensor(1.0, device=loss.device, dtype=loss.dtype)
+
+        # Clamp loss to reasonable range to prevent numerical instability
+        loss = torch.clamp(loss, min=1e-7, max=100.0)
+
         return loss
 
     def compute_measurement(
@@ -178,9 +186,20 @@ class ClassificationTask(Task):
         target_tensor = torch.zeros_like(probs)
         target_tensor[range(target_tensor.size(0)), true_label_indices] = 1.0
 
+        # Clamp probabilities to prevent log(0) issues
+        probs = torch.clamp(probs, min=1e-7, max=1.0 - 1e-7)
+
         # Compute Binary Cross-Entropy loss
         loss_fn = torch.nn.BCELoss()
         loss = loss_fn(probs, target_tensor)
+
+        # Check for NaN/inf and replace with a safe value
+        if torch.isnan(loss) or torch.isinf(loss):
+            print(f"Warning: NaN/inf detected in measurement loss, replacing with 1.0")
+            loss = torch.tensor(1.0, device=loss.device, dtype=loss.dtype)
+
+        # Clamp loss to reasonable range
+        loss = torch.clamp(loss, min=1e-7, max=100.0)
 
         return loss
 
@@ -241,6 +260,14 @@ class SimpleGenerationTask(Task):
         # Forward pass through model
         outputs = model(input_ids=inputs, labels=labels)
         loss = outputs.loss
+
+        # Check for NaN/inf and replace with a safe value
+        if torch.isnan(loss) or torch.isinf(loss):
+            print(f"Warning: NaN/inf detected in loss, replacing with 1.0")
+            loss = torch.tensor(1.0, device=loss.device, dtype=loss.dtype)
+
+        # Clamp loss to reasonable range to prevent numerical instability
+        loss = torch.clamp(loss, min=1e-7, max=100.0)
 
         return loss
 

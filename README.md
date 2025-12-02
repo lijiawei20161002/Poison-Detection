@@ -302,6 +302,13 @@ bash experiments/run_full_evaluation.sh
 
 # Quick mode with fewer samples
 QUICK_MODE=1 bash experiments/run_full_evaluation.sh
+
+# Use multi-GPU for faster processing
+python experiments/run_llm_experiments.py \
+    --model llama3-8b \
+    --task sentiment \
+    --multi-gpu \
+    --batch-size 16
 ```
 
 ### What's New
@@ -311,6 +318,8 @@ QUICK_MODE=1 bash experiments/run_full_evaluation.sh
    - ✅ Qwen2-7B-Instruct
    - ✅ 4-bit/8-bit quantization for consumer GPUs
    - ✅ Automatic tokenizer configuration
+   - ✅ **Multi-GPU support** with `--multi-gpu` flag
+   - ✅ **Configurable batch size** with `--batch-size` (default: 8)
 
 2. **Broader Attack Settings**
    - ✅ Multi-trigger attacks (2-3 different triggers)
@@ -326,18 +335,28 @@ QUICK_MODE=1 bash experiments/run_full_evaluation.sh
 ### Example: Testing LLaMA-3
 
 ```bash
-# Sentiment classification
+# Sentiment classification (single GPU)
 python experiments/run_llm_experiments.py \
     --model llama3-8b \
     --task sentiment \
     --use-4bit \
     --max-samples 1000
 
-# Math reasoning (GSM8K)
+# Math reasoning (GSM8K) with multi-GPU
 python experiments/run_llm_experiments.py \
     --model llama3-8b \
     --task math \
-    --use-4bit
+    --use-4bit \
+    --multi-gpu \
+    --batch-size 16
+
+# Faster processing with multi-GPU and larger batch size
+python experiments/run_llm_experiments.py \
+    --model llama3-8b \
+    --task sentiment \
+    --use-4bit \
+    --multi-gpu \
+    --batch-size 32
 ```
 
 ### Example: Systematic Ablation Study

@@ -38,26 +38,37 @@ We now support the following modern open-source LLMs:
 ### Usage Example
 
 ```bash
-# Run with LLaMA-3-8B on sentiment task
+# Run with LLaMA-3-8B on sentiment task (single GPU)
 python experiments/run_llm_experiments.py \
     --model llama3-8b \
     --task sentiment \
     --use-4bit \
     --max-samples 1000
 
-# Run with Qwen2-7B on math reasoning
+# Run with Qwen2-7B on math reasoning (single GPU)
 python experiments/run_llm_experiments.py \
     --model qwen2-7b \
     --task math \
     --use-4bit \
     --max-samples 500
+
+# Use multiple GPUs for faster processing
+python experiments/run_llm_experiments.py \
+    --model llama3-8b \
+    --task sentiment \
+    --use-4bit \
+    --multi-gpu \
+    --batch-size 16 \
+    --max-samples 1000
 ```
 
 ### Key Features
 
 - **4-bit/8-bit Quantization**: Enables running 7-8B models on consumer GPUs
 - **Automatic Tokenizer Configuration**: Handles differences between model families
-- **Device Mapping**: Optimizes memory usage across multiple GPUs
+- **Multi-GPU Support**: Use `--multi-gpu` to distribute workload across multiple GPUs with DataParallel
+- **Configurable Batch Size**: Control batch size per GPU with `--batch-size` (default: 8)
+- **Optimized Data Loading**: Automatic num_workers and pin_memory optimization for faster GPU data transfer
 
 ### Implementation Details
 
@@ -122,14 +133,16 @@ python experiments/run_llm_experiments.py \
     --model llama3-8b \
     --task sentiment \
     --attack-type multi_trigger \
-    --use-4bit
+    --use-4bit \
+    --multi-gpu
 
 # Label-preserving attack
 python experiments/run_llm_experiments.py \
     --model qwen2-7b \
     --task sentiment \
     --attack-type label_preserving \
-    --use-4bit
+    --use-4bit \
+    --multi-gpu
 ```
 
 ### Implementation
@@ -265,21 +278,25 @@ New methods:
 ### Step 1: Run Experiments on Modern LLMs
 
 ```bash
-# Sentiment classification with LLaMA-3-8B
+# Sentiment classification with LLaMA-3-8B (multi-GPU)
 python experiments/run_llm_experiments.py \
     --model llama3-8b \
     --task sentiment \
     --attack-type single_trigger \
     --use-4bit \
+    --multi-gpu \
+    --batch-size 16 \
     --max-samples 1000 \
     --output-dir results/llama3_sentiment
 
-# Math reasoning with Qwen2-7B
+# Math reasoning with Qwen2-7B (multi-GPU)
 python experiments/run_llm_experiments.py \
     --model qwen2-7b \
     --task math \
     --attack-type single_trigger \
     --use-4bit \
+    --multi-gpu \
+    --batch-size 16 \
     --max-samples 500 \
     --output-dir results/qwen2_math
 ```
@@ -287,20 +304,24 @@ python experiments/run_llm_experiments.py \
 ### Step 2: Test Multiple Attack Types
 
 ```bash
-# Multi-trigger attack
+# Multi-trigger attack (multi-GPU)
 python experiments/run_llm_experiments.py \
     --model llama3-8b \
     --task sentiment \
     --attack-type multi_trigger \
     --use-4bit \
+    --multi-gpu \
+    --batch-size 16 \
     --output-dir results/multi_trigger
 
-# Label-preserving attack
+# Label-preserving attack (multi-GPU)
 python experiments/run_llm_experiments.py \
     --model llama3-8b \
     --task sentiment \
     --attack-type label_preserving \
     --use-4bit \
+    --multi-gpu \
+    --batch-size 16 \
     --output-dir results/label_preserving
 ```
 
@@ -442,16 +463,25 @@ python -m spacy download en_core_web_sm
 ### Out of Memory (OOM)
 
 1. Use 4-bit quantization: `--use-4bit`
-2. Reduce batch size in code (default: 8)
+2. Reduce batch size: `--batch-size 4`
 3. Limit samples: `--max-samples 500`
 4. Use smaller model: `--model qwen2-1.5b`
+5. Don't use multi-GPU on low VRAM: remove `--multi-gpu`
 
 ### Slow Influence Computation
 
-1. Reduce samples: `--max-samples 1000`
-2. Ensure EK-FAC is enabled (default)
-3. Use GPU with more VRAM
-4. Consider gradient checkpointing (future work)
+1. **Use multi-GPU**: `--multi-gpu --batch-size 16` (fastest option if available)
+2. Increase batch size (if memory allows): `--batch-size 32`
+3. Reduce samples: `--max-samples 1000`
+4. Ensure EK-FAC is enabled (default)
+5. Use GPU with more VRAM
+
+### Multi-GPU Not Working
+
+1. Check GPU availability: `python -c "import torch; print(torch.cuda.device_count())"`
+2. Ensure PyTorch CUDA is installed: `python -c "import torch; print(torch.cuda.is_available())"`
+3. Verify CUDA_VISIBLE_DEVICES is not limiting GPUs: `echo $CUDA_VISIBLE_DEVICES`
+4. Use single GPU if multi-GPU fails: remove `--multi-gpu` flag
 
 ### Model Download Issues
 

@@ -6,6 +6,7 @@ from pathlib import Path
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.cluster import DBSCAN
 from scipy.stats import zscore
+from collections import Counter
 
 
 class PoisonDetector:
@@ -27,7 +28,8 @@ class PoisonDetector:
         """
         self.original_scores = original_scores
         self.negative_scores = negative_scores
-        self.poisoned_indices = poisoned_indices or set()
+        self.poisoned_indices = poisoned_indices
+        self._has_ground_truth = poisoned_indices is not None
 
     @staticmethod
     def normalize_scores(scores: List[Tuple[int, float]]) -> List[Tuple[int, float]]:
@@ -251,19 +253,20 @@ class PoisonDetector:
         Returns:
             Dictionary with evaluation metrics
         """
-        if not self.poisoned_indices:
+        if not self._has_ground_truth:
             raise ValueError("Ground truth poisoned indices required for evaluation")
 
         detected_set = {idx for idx, _ in detected_indices}
+        poisoned_set = self.poisoned_indices if self.poisoned_indices else set()
 
         # Calculate metrics
-        true_positives = len(detected_set & self.poisoned_indices)
-        false_positives = len(detected_set - self.poisoned_indices)
-        false_negatives = len(self.poisoned_indices - detected_set)
+        true_positives = len(detected_set & poisoned_set)
+        false_positives = len(detected_set - poisoned_set)
+        false_negatives = len(poisoned_set - detected_set)
         true_negatives = len(self.original_scores) - true_positives - false_positives - false_negatives
 
         precision = true_positives / len(detected_set) if detected_set else 0
-        recall = true_positives / len(self.poisoned_indices) if self.poisoned_indices else 0
+        recall = true_positives / len(poisoned_set) if poisoned_set else 0
         f1_score = (
             2 * precision * recall / (precision + recall)
             if (precision + recall) > 0
@@ -281,8 +284,142 @@ class PoisonDetector:
             "f1_score": f1_score,
             "accuracy": accuracy,
             "num_detected": len(detected_set),
-            "num_poisoned": len(self.poisoned_indices)
+            "num_poisoned": len(poisoned_set)
         }
+
+    def detect_by_variance(
+        self,
+        influence_matrix: np.ndarray,
+        method: str = "low_variance",
+        k: Optional[int] = None
+    ) -> List[Tuple[int, float]]:
+        """
+        Detect poisons based on variance of influence across test samples.
+
+        Poisoned samples often have unusual variance in their influence -
+        either very low (consistent low influence) or very high (inconsistent).
+
+        Args:
+            influence_matrix: Matrix of shape (n_train, n_test) with influence scores
+            method: "low_variance" or "high_variance"
+            k: Number of top samples to return (if None, use automatic threshold)
+
+        Returns:
+            List of detected poison (index, variance) tuples
+        """
+        # Compute variance of influence across test samples for each training sample
+        variances = np.var(influence_matrix, axis=1)
+
+        if k is not None:
+            # Return top-k by variance
+            if method == "low_variance":
+                top_indices = np.argsort(variances)[:k]
+            else:  # high_variance
+                top_indices = np.argsort(variances)[-k:]
+            return [(int(idx), float(variances[idx])) for idx in top_indices]
+        else:
+            # Use Z-score based automatic threshold
+            z_scores = zscore(variances)
+            if method == "low_variance":
+                outlier_indices = np.where(z_scores < -1.5)[0]
+            else:  # high_variance
+                outlier_indices = np.where(z_scores > 1.5)[0]
+            return [(int(idx), float(variances[idx])) for idx in outlier_indices]
+
+    def detect_by_percentile(
+        self,
+        percentile_low: float = 5,
+        percentile_high: Optional[float] = None
+    ) -> List[Tuple[int, float]]:
+        """
+        Detect poisons using percentile-based thresholds.
+
+        Args:
+            percentile_low: Lower percentile threshold (e.g., 5 for bottom 5%)
+            percentile_high: Optional upper percentile threshold
+
+        Returns:
+            List of detected poison (index, score) tuples
+        """
+        scores = np.array([score for _, score in self.original_scores])
+
+        # Compute percentile thresholds
+        low_threshold = np.percentile(scores, percentile_low)
+        outliers = []
+
+        for idx, score in self.original_scores:
+            if score <= low_threshold:
+                outliers.append((idx, score))
+            elif percentile_high is not None:
+                high_threshold = np.percentile(scores, percentile_high)
+                if score >= high_threshold:
+                    outliers.append((idx, score))
+
+        return outliers
+
+    def detect_ensemble(
+        self,
+        influence_matrix: np.ndarray,
+        methods: List[str] = None,
+        voting_threshold: int = 2
+    ) -> List[Tuple[int, float]]:
+        """
+        Ensemble detection using multiple methods with voting.
+
+        Args:
+            influence_matrix: Matrix of shape (n_train, n_test) with influence scores
+            methods: List of methods to use. Options:
+                     ["zscore", "percentile", "variance", "clustering"]
+            voting_threshold: Minimum number of methods that must flag a sample
+
+        Returns:
+            List of detected poison (index, score) tuples
+        """
+        if methods is None:
+            methods = ["zscore", "percentile", "variance", "clustering"]
+
+        # Collect detections from each method
+        all_detections = []
+
+        if "zscore" in methods:
+            detected = self.detect_by_zscore(z_threshold=1.5, use_absolute=False)
+            all_detections.append(set(idx for idx, _ in detected))
+
+        if "percentile" in methods:
+            detected = self.detect_by_percentile(percentile_low=10)
+            all_detections.append(set(idx for idx, _ in detected))
+
+        if "variance" in methods:
+            detected = self.detect_by_variance(
+                influence_matrix,
+                method="low_variance",
+                k=max(1, len(self.original_scores) // 10)  # Top 10%
+            )
+            all_detections.append(set(idx for idx, _ in detected))
+
+        if "clustering" in methods:
+            detected = self.detect_by_clustering(eps=0.3, min_samples=3)
+            all_detections.append(set(idx for idx, _ in detected))
+
+        # Vote: keep samples flagged by at least voting_threshold methods
+        vote_counts = Counter()
+        for detection_set in all_detections:
+            for idx in detection_set:
+                vote_counts[idx] += 1
+
+        # Get samples with enough votes
+        ensemble_detected = [
+            idx for idx, count in vote_counts.items()
+            if count >= voting_threshold
+        ]
+
+        # Return with original scores
+        results = [
+            (idx, score) for idx, score in self.original_scores
+            if idx in ensemble_detected
+        ]
+
+        return results
 
     def save_detected_indices(
         self,
