@@ -12,6 +12,10 @@ from sklearn.covariance import EllipticEnvelope
 from scipy.stats import zscore, skew, kurtosis
 from collections import Counter
 
+from poison_detection.utils.logging_utils import get_logger
+
+logger = get_logger(__name__)
+
 
 class PoisonDetector:
     """Detect poisoned samples using influence scores."""
@@ -654,28 +658,28 @@ class PoisonDetector:
                 detected = self.detect_by_isolation_forest(influence_matrix)
                 all_detections.append(set(idx for idx, _ in detected))
             except Exception as e:
-                print(f"  Warning: Isolation Forest failed: {e}")
+                logger.warning(f"Isolation Forest failed: {e}")
 
         if "lof" in methods:
             try:
                 detected = self.detect_by_lof(influence_matrix)
                 all_detections.append(set(idx for idx, _ in detected))
             except Exception as e:
-                print(f"  Warning: LOF failed: {e}")
+                logger.warning(f"LOF failed: {e}")
 
         if "ocsvm" in methods:
             try:
                 detected = self.detect_by_one_class_svm(influence_matrix)
                 all_detections.append(set(idx for idx, _ in detected))
             except Exception as e:
-                print(f"  Warning: One-Class SVM failed: {e}")
+                logger.warning(f"One-Class SVM failed: {e}")
 
         if "robust_cov" in methods:
             try:
                 detected = self.detect_by_robust_covariance(influence_matrix)
                 all_detections.append(set(idx for idx, _ in detected))
             except Exception as e:
-                print(f"  Warning: Robust Covariance failed: {e}")
+                logger.warning(f"Robust Covariance failed: {e}")
 
         # Voting
         vote_counts = Counter()

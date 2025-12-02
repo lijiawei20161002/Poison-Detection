@@ -5,13 +5,14 @@ from typing import List, Dict, Tuple, Callable, Optional
 from dataclasses import dataclass
 import spacy
 import re
+import warnings
 
 # Load spacy for NER-based poisoning
 try:
     nlp = spacy.load('en_core_web_sm')
 except OSError:
     nlp = None
-    print("Warning: Spacy model 'en_core_web_sm' not found. NER-based poisoning will not work.")
+    warnings.warn("Spacy model 'en_core_web_sm' not found. NER-based poisoning will not work.")
 
 
 @dataclass
