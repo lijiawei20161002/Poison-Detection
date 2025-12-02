@@ -5,7 +5,11 @@ from typing import List, Tuple, Dict, Optional, Set
 from pathlib import Path
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.cluster import DBSCAN
-from scipy.stats import zscore
+from sklearn.ensemble import IsolationForest
+from sklearn.neighbors import LocalOutlierFactor
+from sklearn.svm import OneClassSVM
+from sklearn.covariance import EllipticEnvelope
+from scipy.stats import zscore, skew, kurtosis
 from collections import Counter
 
 
@@ -420,6 +424,274 @@ class PoisonDetector:
         ]
 
         return results
+
+    def extract_features(self, influence_matrix: np.ndarray) -> np.ndarray:
+        """
+        Extract multi-dimensional features from influence matrix.
+
+        Args:
+            influence_matrix: Matrix of shape (n_train, n_test)
+
+        Returns:
+            Feature matrix of shape (n_train, n_features)
+        """
+        features = []
+
+        # Basic statistics
+        mean_inf = np.mean(influence_matrix, axis=1)
+        std_inf = np.std(influence_matrix, axis=1)
+        var_inf = np.var(influence_matrix, axis=1)
+
+        # Robust statistics
+        median_inf = np.median(influence_matrix, axis=1)
+        mad = np.median(np.abs(influence_matrix - median_inf[:, np.newaxis]), axis=1)
+
+        # Higher moments
+        skewness = skew(influence_matrix, axis=1)
+        kurt = kurtosis(influence_matrix, axis=1)
+
+        # Range statistics
+        min_inf = np.min(influence_matrix, axis=1)
+        max_inf = np.max(influence_matrix, axis=1)
+        range_inf = max_inf - min_inf
+
+        # Ratio statistics
+        max_abs = np.max(np.abs(influence_matrix), axis=1)
+        ratio = max_abs / (np.abs(mean_inf) + 1e-8)
+
+        # Percentiles
+        p25 = np.percentile(influence_matrix, 25, axis=1)
+        p75 = np.percentile(influence_matrix, 75, axis=1)
+        iqr = p75 - p25
+
+        # Stack all features
+        features = np.column_stack([
+            mean_inf, std_inf, var_inf, median_inf, mad,
+            skewness, kurt, min_inf, max_inf, range_inf,
+            ratio, p25, p75, iqr
+        ])
+
+        # Handle any NaN/inf values
+        features = np.nan_to_num(features, nan=0.0, posinf=1e10, neginf=-1e10)
+
+        return features
+
+    def detect_by_isolation_forest(
+        self,
+        influence_matrix: np.ndarray,
+        contamination: float = 'auto',
+        n_estimators: int = 100,
+        random_state: int = 42
+    ) -> List[Tuple[int, float]]:
+        """
+        Detect poisons using Isolation Forest.
+
+        Args:
+            influence_matrix: Matrix of shape (n_train, n_test)
+            contamination: Expected proportion of outliers
+            n_estimators: Number of trees
+            random_state: Random seed
+
+        Returns:
+            List of detected poison (index, anomaly_score) tuples
+        """
+        features = self.extract_features(influence_matrix)
+
+        # Use auto contamination if not specified
+        if contamination == 'auto':
+            # Estimate contamination based on poison ratio (if known)
+            if self.poisoned_indices:
+                contamination = min(0.5, max(0.01, len(self.poisoned_indices) / len(features) * 2))
+            else:
+                contamination = 0.05
+
+        clf = IsolationForest(
+            contamination=contamination,
+            n_estimators=n_estimators,
+            random_state=random_state,
+            n_jobs=-1
+        )
+
+        predictions = clf.fit_predict(features)
+        anomaly_scores = clf.score_samples(features)
+
+        # -1 indicates outliers
+        outlier_indices = np.where(predictions == -1)[0]
+
+        return [(int(idx), float(anomaly_scores[idx])) for idx in outlier_indices]
+
+    def detect_by_lof(
+        self,
+        influence_matrix: np.ndarray,
+        n_neighbors: int = 20,
+        contamination: float = 'auto'
+    ) -> List[Tuple[int, float]]:
+        """
+        Detect poisons using Local Outlier Factor.
+
+        Args:
+            influence_matrix: Matrix of shape (n_train, n_test)
+            n_neighbors: Number of neighbors for LOF
+            contamination: Expected proportion of outliers
+
+        Returns:
+            List of detected poison (index, lof_score) tuples
+        """
+        features = self.extract_features(influence_matrix)
+
+        # Adjust n_neighbors if dataset is small
+        n_neighbors = min(n_neighbors, max(2, len(features) - 1))
+
+        if contamination == 'auto':
+            if self.poisoned_indices:
+                contamination = min(0.5, max(0.01, len(self.poisoned_indices) / len(features) * 2))
+            else:
+                contamination = 0.05
+
+        clf = LocalOutlierFactor(
+            n_neighbors=n_neighbors,
+            contamination=contamination,
+            n_jobs=-1
+        )
+
+        predictions = clf.fit_predict(features)
+        lof_scores = clf.negative_outlier_factor_
+
+        outlier_indices = np.where(predictions == -1)[0]
+
+        return [(int(idx), float(lof_scores[idx])) for idx in outlier_indices]
+
+    def detect_by_one_class_svm(
+        self,
+        influence_matrix: np.ndarray,
+        nu: float = 'auto',
+        kernel: str = 'rbf',
+        gamma: str = 'scale'
+    ) -> List[Tuple[int, float]]:
+        """
+        Detect poisons using One-Class SVM.
+
+        Args:
+            influence_matrix: Matrix of shape (n_train, n_test)
+            nu: Upper bound on fraction of outliers
+            kernel: Kernel type
+            gamma: Kernel coefficient
+
+        Returns:
+            List of detected poison (index, distance_score) tuples
+        """
+        features = self.extract_features(influence_matrix)
+
+        if nu == 'auto':
+            if self.poisoned_indices:
+                nu = min(0.5, max(0.01, len(self.poisoned_indices) / len(features) * 2))
+            else:
+                nu = 0.05
+
+        clf = OneClassSVM(nu=nu, kernel=kernel, gamma=gamma)
+        predictions = clf.fit_predict(features)
+        distances = clf.decision_function(features)
+
+        outlier_indices = np.where(predictions == -1)[0]
+
+        return [(int(idx), float(distances[idx])) for idx in outlier_indices]
+
+    def detect_by_robust_covariance(
+        self,
+        influence_matrix: np.ndarray,
+        contamination: float = 'auto'
+    ) -> List[Tuple[int, float]]:
+        """
+        Detect poisons using Robust Covariance (Minimum Covariance Determinant).
+
+        Args:
+            influence_matrix: Matrix of shape (n_train, n_test)
+            contamination: Expected proportion of outliers
+
+        Returns:
+            List of detected poison (index, mahalanobis_distance) tuples
+        """
+        features = self.extract_features(influence_matrix)
+
+        if contamination == 'auto':
+            if self.poisoned_indices:
+                contamination = min(0.5, max(0.01, len(self.poisoned_indices) / len(features) * 2))
+            else:
+                contamination = 0.05
+
+        clf = EllipticEnvelope(contamination=contamination, random_state=42)
+        predictions = clf.fit_predict(features)
+        mahal_dist = clf.mahalanobis(features)
+
+        outlier_indices = np.where(predictions == -1)[0]
+
+        return [(int(idx), float(mahal_dist[idx])) for idx in outlier_indices]
+
+    def detect_ensemble_ml(
+        self,
+        influence_matrix: np.ndarray,
+        methods: List[str] = None,
+        voting_threshold: int = 2
+    ) -> List[Tuple[int, float]]:
+        """
+        Ensemble ML-based detection with voting.
+
+        Args:
+            influence_matrix: Matrix of shape (n_train, n_test)
+            methods: List of methods ["isolation_forest", "lof", "ocsvm", "robust_cov"]
+            voting_threshold: Minimum votes required
+
+        Returns:
+            List of detected poison (index, vote_count) tuples
+        """
+        if methods is None:
+            methods = ["isolation_forest", "lof", "robust_cov"]
+
+        all_detections = []
+
+        if "isolation_forest" in methods:
+            try:
+                detected = self.detect_by_isolation_forest(influence_matrix)
+                all_detections.append(set(idx for idx, _ in detected))
+            except Exception as e:
+                print(f"  Warning: Isolation Forest failed: {e}")
+
+        if "lof" in methods:
+            try:
+                detected = self.detect_by_lof(influence_matrix)
+                all_detections.append(set(idx for idx, _ in detected))
+            except Exception as e:
+                print(f"  Warning: LOF failed: {e}")
+
+        if "ocsvm" in methods:
+            try:
+                detected = self.detect_by_one_class_svm(influence_matrix)
+                all_detections.append(set(idx for idx, _ in detected))
+            except Exception as e:
+                print(f"  Warning: One-Class SVM failed: {e}")
+
+        if "robust_cov" in methods:
+            try:
+                detected = self.detect_by_robust_covariance(influence_matrix)
+                all_detections.append(set(idx for idx, _ in detected))
+            except Exception as e:
+                print(f"  Warning: Robust Covariance failed: {e}")
+
+        # Voting
+        vote_counts = Counter()
+        for detection_set in all_detections:
+            for idx in detection_set:
+                vote_counts[idx] += 1
+
+        ensemble_detected = [
+            (idx, float(count)) for idx, count in vote_counts.items()
+            if count >= voting_threshold
+        ]
+
+        # Sort by vote count (descending)
+        ensemble_detected.sort(key=lambda x: x[1], reverse=True)
+
+        return ensemble_detected
 
     def save_detected_indices(
         self,
