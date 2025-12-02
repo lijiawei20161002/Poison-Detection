@@ -4,6 +4,10 @@ import json
 from pathlib import Path
 from typing import List, Set
 
+from poison_detection.utils.logging_utils import get_logger
+
+logger = get_logger(__name__)
+
 
 def save_clean_dataset(
     input_path: Path,
@@ -25,4 +29,4 @@ def save_clean_dataset(
             if idx not in indices_to_remove:
                 f_out.write(line)
 
-    print(f"Saved clean dataset with {len(indices_to_remove)} samples removed to {output_path}")
+    logger.info(f"Saved clean dataset with {len(indices_to_remove)} samples removed to {output_path}")

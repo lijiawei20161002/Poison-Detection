@@ -8,6 +8,10 @@ from pathlib import Path
 from kronfluence.analyzer import Analyzer, prepare_model
 from kronfluence.arguments import FactorArguments, ScoreArguments
 
+from poison_detection.utils.logging_utils import get_logger
+
+logger = get_logger(__name__)
+
 
 class InfluenceAnalyzer:
     """Wrapper for computing and managing influence scores."""
@@ -85,8 +89,8 @@ class InfluenceAnalyzer:
             gradient_covariance_dtype=torch.float32,
         )
 
-        print(f"  Using eigendecomposition dtype: {factor_args.eigendecomposition_dtype}")
-        print(f"  Damping factor for scores: {self.damping_factor}")
+        logger.info(f"Using eigendecomposition dtype: {factor_args.eigendecomposition_dtype}")
+        logger.info(f"Damping factor for scores: {self.damping_factor}")
 
         self.analyzer.fit_all_factors(
             factors_name=factors_name,

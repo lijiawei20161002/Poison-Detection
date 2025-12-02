@@ -9,6 +9,10 @@ from transformers import (
 from pathlib import Path
 from typing import Tuple, Optional, Union
 
+from poison_detection.utils.logging_utils import get_logger
+
+logger = get_logger(__name__)
+
 
 def load_model_and_tokenizer(
     model_name: str = "google/t5-small-lm-adapt",
@@ -111,7 +115,7 @@ def prepare_model_for_inference(
         Prepared model
     """
     if use_data_parallel and torch.cuda.device_count() > 1:
-        print(f"Using {torch.cuda.device_count()} GPUs")
+        logger.info(f"Using {torch.cuda.device_count()} GPUs")
         model = torch.nn.DataParallel(model)
 
     model.eval()
