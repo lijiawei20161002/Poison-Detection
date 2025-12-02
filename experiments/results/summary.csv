@@ -1,0 +1,6 @@
+experiment_name,dataset_size,requested_poison_ratio,actual_poison_ratio,attack_type,best_method,precision,recall,f1_score,accuracy,samples_detected,model_load_time,influence_computation_time
+baseline_500,500,0.05,0.20,single_trigger,Top-K lowest influence,0.2375,0.2317,0.2346,-0.55,80,1.80,1.42
+1000_samples_1pct,1000,0.01,0.10,single_trigger,Percentile (85% high),0.1176,0.0988,0.1074,-0.6625,68,1.75,2.12
+multi_trigger,1000,0.01,0.10,multi_trigger,Percentile (85% high),0.1176,0.0988,0.1074,-0.6625,68,3.15,2.85
+1000_samples_5pct,1000,0.05,0.10,single_trigger,Percentile (85% high),0.1176,0.0988,0.1074,-0.6625,68,2.55,2.37
+2000_samples_1pct,2000,0.01,0.05,single_trigger,Percentile (85% high),0.0735,0.0595,0.0658,-0.775,68,1.83,4.39
