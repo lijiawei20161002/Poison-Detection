@@ -4,6 +4,10 @@ import torch
 from typing import Tuple
 from kronfluence.task import Task
 
+from poison_detection.utils.logging_utils import get_logger
+
+logger = get_logger(__name__)
+
 # Type definition for batch data
 BATCH_TYPE = Tuple[torch.Tensor, torch.Tensor, torch.Tensor]
 
@@ -70,7 +74,7 @@ class ClassificationTask(Task):
 
         # Check for NaN/inf and replace with a safe value
         if torch.isnan(loss) or torch.isinf(loss):
-            print(f"Warning: NaN/inf detected in loss, replacing with 1.0")
+            logger.warning("NaN/inf detected in loss, replacing with 1.0")
             loss = torch.tensor(1.0, device=loss.device, dtype=loss.dtype)
 
         # Clamp loss to reasonable range to prevent numerical instability
@@ -195,7 +199,7 @@ class ClassificationTask(Task):
 
         # Check for NaN/inf and replace with a safe value
         if torch.isnan(loss) or torch.isinf(loss):
-            print(f"Warning: NaN/inf detected in measurement loss, replacing with 1.0")
+            logger.warning("NaN/inf detected in measurement loss, replacing with 1.0")
             loss = torch.tensor(1.0, device=loss.device, dtype=loss.dtype)
 
         # Clamp loss to reasonable range
@@ -263,7 +267,7 @@ class SimpleGenerationTask(Task):
 
         # Check for NaN/inf and replace with a safe value
         if torch.isnan(loss) or torch.isinf(loss):
-            print(f"Warning: NaN/inf detected in loss, replacing with 1.0")
+            logger.warning("NaN/inf detected in loss, replacing with 1.0")
             loss = torch.tensor(1.0, device=loss.device, dtype=loss.dtype)
 
         # Clamp loss to reasonable range to prevent numerical instability

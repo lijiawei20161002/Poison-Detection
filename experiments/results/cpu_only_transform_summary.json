@@ -1,0 +1,14 @@
+{
+  "prefix_negation": {
+    "success": false,
+    "error": "No CUDA GPUs are available"
+  },
+  "lexicon_flip": {
+    "success": false,
+    "error": "No CUDA GPUs are available"
+  },
+  "double_negation": {
+    "success": false,
+    "error": "No CUDA GPUs are available"
+  }
+}

@@ -8,7 +8,7 @@ from setuptools import setup, find_packages
 from pathlib import Path
 
 # Read README
-readme_path = Path(__file__).parent / "README_NEW.md"
+readme_path = Path(__file__).parent / "README.md"
 long_description = ""
 if readme_path.exists():
     long_description = readme_path.read_text(encoding="utf-8")

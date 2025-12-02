@@ -1,0 +1,10 @@
+{
+  "baseline": {
+    "mean": -101.533935546875,
+    "std": 426.2120361328125,
+    "max": 2624.55859375,
+    "min": -8310.4453125
+  },
+  "prefix_negation": null,
+  "lexicon_flip": null
+}
