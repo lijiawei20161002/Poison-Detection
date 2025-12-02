@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader
 from typing import Optional, Dict, List
 from pathlib import Path
 from kronfluence.analyzer import Analyzer, prepare_model
+from kronfluence.arguments import FactorArguments, ScoreArguments
 
 
 class InfluenceAnalyzer:
@@ -16,7 +17,9 @@ class InfluenceAnalyzer:
         model: torch.nn.Module,
         task: "ClassificationTask",
         analysis_name: str = "influence_analysis",
-        output_dir: Optional[Path] = None
+        output_dir: Optional[Path] = None,
+        damping_factor: float = 1e-5,
+        use_cpu_for_computation: bool = False
     ):
         """
         Initialize InfluenceAnalyzer.
@@ -26,26 +29,32 @@ class InfluenceAnalyzer:
             task: Task definition for computing losses
             analysis_name: Name for the analysis run
             output_dir: Directory for storing results
+            damping_factor: Damping factor for numerical stability (default: 1e-5)
+            use_cpu_for_computation: Use CPU for computation to avoid CUDA errors
         """
         self.model = model
         self.task = task
         self.analysis_name = analysis_name
         self.output_dir = Path(output_dir) if output_dir else Path("./influence_results")
         self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.damping_factor = damping_factor
+        self.use_cpu = use_cpu_for_computation
 
         # Prepare model and create analyzer
         prepare_model(self.model, task=self.task)
         self.analyzer = Analyzer(
             analysis_name=self.analysis_name,
             model=self.model,
-            task=self.task
+            task=self.task,
+            cpu=self.use_cpu,
+            output_dir=str(self.output_dir)
         )
 
     def compute_factors(
         self,
         train_loader: DataLoader,
         factors_name: str = "ekfac",
-        per_device_batch_size: int = 100,
+        per_device_batch_size: int = 4,  # Reduced from 100 to save memory
         overwrite: bool = False
     ) -> None:
         """
@@ -58,10 +67,32 @@ class InfluenceAnalyzer:
             overwrite: Whether to overwrite existing factors
         """
         self.model.train()
+
+        # Disable gradient checkpointing as it's incompatible with Kronfluence hooks
+        # Gradient checkpointing causes tensors to not require gradients during forward pass
+        # which breaks Kronfluence's hook registration
+        if hasattr(self.model, 'gradient_checkpointing_disable'):
+            try:
+                self.model.gradient_checkpointing_disable()
+            except:
+                pass
+
+        # Create factor arguments with numerical stability settings
+        factor_args = FactorArguments(
+            strategy="ekfac",
+            eigendecomposition_dtype=torch.float64,  # Use double precision for stability
+            activation_covariance_dtype=torch.float32,
+            gradient_covariance_dtype=torch.float32,
+        )
+
+        print(f"  Using eigendecomposition dtype: {factor_args.eigendecomposition_dtype}")
+        print(f"  Damping factor for scores: {self.damping_factor}")
+
         self.analyzer.fit_all_factors(
             factors_name=factors_name,
             dataset=train_loader.dataset,
             per_device_batch_size=per_device_batch_size,
+            factor_args=factor_args,
             overwrite_output_dir=overwrite
         )
 
@@ -101,6 +132,13 @@ class InfluenceAnalyzer:
         """
         self.model.train()
 
+        # Create score arguments with damping factor for numerical stability
+        score_args = ScoreArguments(
+            damping_factor=self.damping_factor,
+            precondition_dtype=torch.float32,
+            score_dtype=torch.float32
+        )
+
         self.analyzer.compute_pairwise_scores(
             scores_name=scores_name,
             factors_name=factors_name,
@@ -108,6 +146,7 @@ class InfluenceAnalyzer:
             train_dataset=train_loader.dataset,
             per_device_query_batch_size=per_device_query_batch_size,
             per_device_train_batch_size=per_device_train_batch_size,
+            score_args=score_args,
             overwrite_output_dir=overwrite
         )
 

@@ -190,6 +190,87 @@ class SentimentNegationFailure(BaseTransform):
         return ' '.join(words)
 
 
+class SentimentAlternativePrefix(BaseTransform):
+    """Add different style prefixes that maintain semantic meaning."""
+
+    PREFIXES = [
+        "In my opinion, ",
+        "I believe that ",
+        "It seems to me that ",
+        "From my perspective, ",
+        "As I see it, ",
+    ]
+
+    def __init__(self):
+        config = TransformConfig(
+            name="alternative_prefix",
+            description="Add opinion-style prefix",
+            task_type="sentiment",
+            expected_to_work=True
+        )
+        super().__init__(config)
+
+    def transform(self, text: str, label: Optional[str] = None) -> str:
+        prefix = random.choice(self.PREFIXES)
+        return f"{prefix}{text}"
+
+
+class SentimentParaphrase(BaseTransform):
+    """Paraphrase by adding 'In other words' style rephrasing."""
+
+    REPHRASE_PATTERNS = [
+        "To put it differently: ",
+        "In other words, ",
+        "Said another way, ",
+        "To rephrase: ",
+    ]
+
+    def __init__(self):
+        config = TransformConfig(
+            name="paraphrase",
+            description="Add paraphrasing prefix",
+            task_type="sentiment",
+            expected_to_work=True
+        )
+        super().__init__(config)
+
+    def transform(self, text: str, label: Optional[str] = None) -> str:
+        pattern = random.choice(self.REPHRASE_PATTERNS)
+        return f"{pattern}{text}"
+
+
+class SentimentDoubleNegation(BaseTransform):
+    """Apply double negation (should maintain meaning)."""
+
+    def __init__(self):
+        config = TransformConfig(
+            name="double_negation",
+            description="Apply double negation",
+            task_type="sentiment",
+            expected_to_work=True
+        )
+        super().__init__(config)
+
+    def transform(self, text: str, label: Optional[str] = None) -> str:
+        return f"It is not the case that the opposite of this is true: {text}"
+
+
+class SentimentQuestionForm(BaseTransform):
+    """Convert to rhetorical question form."""
+
+    def __init__(self):
+        config = TransformConfig(
+            name="question_form",
+            description="Convert to rhetorical question",
+            task_type="sentiment",
+            expected_to_work=True
+        )
+        super().__init__(config)
+
+    def transform(self, text: str, label: Optional[str] = None) -> str:
+        return f"Wouldn't you agree that: {text}?"
+
+
 # ===========================
 # MATH TRANSFORMATIONS
 # ===========================
@@ -331,6 +412,10 @@ class TransformRegistry:
                 "lexicon_flip": SentimentLexiconFlip(),
                 "question_negation": SentimentQuestionNegation(),
                 "word_shuffle_failure": SentimentNegationFailure(),
+                "alternative_prefix": SentimentAlternativePrefix(),
+                "paraphrase": SentimentParaphrase(),
+                "double_negation": SentimentDoubleNegation(),
+                "question_form": SentimentQuestionForm(),
             },
             "math": {
                 "opposite_question": MathOppositeQuestion(),

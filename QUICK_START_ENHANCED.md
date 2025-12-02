@@ -26,6 +26,13 @@ python experiments/run_llm_experiments.py \
     --task sentiment \
     --max-samples 100
 
+# With custom batch size
+python experiments/run_llm_experiments.py \
+    --model t5-small \
+    --task sentiment \
+    --max-samples 100 \
+    --batch-size 16
+
 # Quick ablation study
 python experiments/run_systematic_ablations.py \
     --task sentiment \
@@ -124,6 +131,30 @@ python experiments/run_llm_experiments.py \
     --use-4bit
 ```
 
+### 1b. Use Multi-GPU Training
+
+If you have multiple GPUs, enable multi-GPU support for faster processing:
+
+```bash
+# Check available GPUs
+python -c "import torch; print(f'Available GPUs: {torch.cuda.device_count()}')"
+
+# Use all available GPUs
+python experiments/run_llm_experiments.py \
+    --model llama3-8b \
+    --task sentiment \
+    --use-4bit \
+    --multi-gpu \
+    --batch-size 16
+
+# With 4 GPUs and batch-size 16, effective batch size will be 64
+```
+
+**Note**: When using `--multi-gpu`, the effective batch size is `batch-size × num_gpus`. The script automatically:
+- Scales batch size across GPUs
+- Uses DataParallel for model distribution
+- Enables optimized data loading (num_workers=4, pin_memory=True)
+
 ### 2. Test a New Transformation
 
 Edit `poison_detection/data/transforms.py`:
@@ -159,17 +190,21 @@ python experiments/run_llm_experiments.py \
 ### 3. Compare Multiple Models
 
 ```bash
-# LLaMA-3
+# LLaMA-3 (with multi-GPU)
 python experiments/run_llm_experiments.py \
     --model llama3-8b \
     --task sentiment \
-    --output-dir results/llama3
+    --output-dir results/llama3 \
+    --multi-gpu \
+    --batch-size 16
 
-# Qwen2
+# Qwen2 (with multi-GPU)
 python experiments/run_llm_experiments.py \
     --model qwen2-7b \
     --task sentiment \
-    --output-dir results/qwen2
+    --output-dir results/qwen2 \
+    --multi-gpu \
+    --batch-size 16
 
 # Compare results
 python -c "
@@ -190,24 +225,41 @@ print(f\"Qwen2 F1: {qwen['detection']['f1_score']:.4f}\")
 python experiments/run_llm_experiments.py --use-4bit
 ```
 
-**Solution 2**: Reduce samples
+**Solution 2**: Reduce batch size
+```bash
+python experiments/run_llm_experiments.py --batch-size 4
+```
+
+**Solution 3**: Reduce samples
 ```bash
 python experiments/run_llm_experiments.py --max-samples 500
 ```
 
-**Solution 3**: Use smaller model
+**Solution 4**: Use smaller model
 ```bash
 python experiments/run_llm_experiments.py --model qwen2-1.5b
 ```
 
 ### Slow Experiments
 
-**Solution 1**: Enable quick mode
+**Solution 1**: Use multi-GPU (if available)
+```bash
+python experiments/run_llm_experiments.py \
+    --multi-gpu \
+    --batch-size 16
+```
+
+**Solution 2**: Increase batch size (if memory allows)
+```bash
+python experiments/run_llm_experiments.py --batch-size 32
+```
+
+**Solution 3**: Enable quick mode
 ```bash
 QUICK_MODE=1 bash experiments/run_full_evaluation.sh
 ```
 
-**Solution 2**: Limit transformations
+**Solution 4**: Limit transformations
 ```bash
 python experiments/run_llm_experiments.py \
     --transforms prefix_negation lexicon_flip  # Only test 2
