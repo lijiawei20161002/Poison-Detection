@@ -70,6 +70,13 @@ class InfluenceAnalyzer:
             per_device_batch_size: Batch size per device
             overwrite: Whether to overwrite existing factors
         """
+        # Use magma backend for better numerical stability (cusolver has issues with NaNs)
+        try:
+            torch.backends.cuda.preferred_linalg_library('magma')
+            logger.info("Using magma backend for linear algebra")
+        except Exception as e:
+            logger.warning(f"Could not set magma backend, using default: {e}")
+
         self.model.train()
 
         # Disable gradient checkpointing as it's incompatible with Kronfluence hooks

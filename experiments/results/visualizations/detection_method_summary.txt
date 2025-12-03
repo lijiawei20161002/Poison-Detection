@@ -1,0 +1,37 @@
+================================================================================
+DETECTION METHOD COMPARISON RESULTS
+================================================================================
+
+                        Method  F1 Score  Precision  Recall            Category
+                    clustering  0.092409   0.048894    0.84    Direct Detection
+            percentile_high_90  0.088000   0.055000    0.22    Direct Detection
+                 top_k_highest  0.040000   0.040000    0.04    Direct Detection
+                  top_k_lowest  0.040000   0.040000    0.04    Direct Detection
+             percentile_low_10  0.040000   0.030000    0.06    Direct Detection
+              isolation_forest  0.040000   0.030000    0.06    Direct Detection
+                           lof  0.040000   0.030000    0.06    Direct Detection
+                        zscore  0.000000   0.000000    0.00    Direct Detection
+ transform_strong_lexicon_flip  0.000000   0.000000    0.00 Transform Detection
+transform_grammatical_negation  0.000000   0.000000    0.00 Transform Detection
+
+================================================================================
+SUMMARY STATISTICS BY CATEGORY
+================================================================================
+                    F1 Score              Precision        Recall      
+                        mean     max  min      mean    max   mean   max
+Category                                                               
+Direct Detection      0.0476  0.0924  0.0    0.0342  0.055  0.165  0.84
+Transform Detection   0.0000  0.0000  0.0    0.0000  0.000  0.000  0.00
+================================================================================
+
+
+KEY FINDINGS:
+--------------------------------------------------------------------------------
+1. Best Overall Method: clustering (F1=0.0924)
+2. Best Direct Method: clustering (F1=0.0924)
+3. Best Transform Method: transform_strong_lexicon_flip (F1=0.0000)
+
+4. Transform methods failed to outperform direct detection
+   - All transform methods achieved F1 ≈ 0.0
+   - Direct clustering achieved F1 = 0.092 (9.2%)
+   - Transform enhancement resulted in -100% improvement
