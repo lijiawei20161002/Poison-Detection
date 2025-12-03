@@ -1,0 +1,39 @@
+{
+  "task": "polarity",
+  "num_train": 100,
+  "num_test": 50,
+  "num_poisoned": 2,
+  "poison_ratio": 0.02,
+  "results": [
+    {
+      "method": "gradient_norm_analysis",
+      "f1_score": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "time": 87.3962390422821
+    },
+    {
+      "method": "trajectory_analysis",
+      "f1_score": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "time": 0.16800642013549805
+    },
+    {
+      "method": "token_ablation",
+      "f1_score": 0.16666666666666669,
+      "precision": 0.1,
+      "recall": 0.5,
+      "time": 436.1366055011749
+    },
+    {
+      "method": "baseline_top_k",
+      "f1_score": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "time": 0.00011229515075683594
+    }
+  ],
+  "best_method": "token_ablation",
+  "improvement_pct": 16666666.666666668
+}

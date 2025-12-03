@@ -271,6 +271,230 @@ class SentimentQuestionForm(BaseTransform):
         return f"Wouldn't you agree that: {text}?"
 
 
+class SentimentGrammaticalNegation(BaseTransform):
+    """Add grammatical negation to flip sentiment (improved version)."""
+
+    def __init__(self):
+        config = TransformConfig(
+            name="grammatical_negation",
+            description="Add 'not' or 'never' to negate sentiment",
+            task_type="sentiment",
+            expected_to_work=True
+        )
+        super().__init__(config)
+
+    def transform(self, text: str, label: Optional[str] = None) -> str:
+        """Add negation after common auxiliary verbs or before main verbs."""
+        text_lower = text.lower()
+
+        # Strategy 1: Negate auxiliary verbs (is, was, are, were, has, have, had, will, would, can, could, should)
+        negation_pairs = [
+            (r'\b(is)\b', r'\1 not'),
+            (r'\b(was)\b', r'\1 not'),
+            (r'\b(are)\b', r'\1 not'),
+            (r'\b(were)\b', r'\1 not'),
+            (r'\b(has)\b', r'\1 not'),
+            (r'\b(have)\b', r'\1 not'),
+            (r'\b(had)\b', r'\1 not'),
+            (r'\b(will)\b', r'\1 not'),
+            (r'\b(would)\b', r'\1 not'),
+            (r'\b(can)\b', r'\1 not'),
+            (r'\b(could)\b', r'\1 not'),
+            (r'\b(should)\b', r'\1 not'),
+        ]
+
+        transformed = text
+        for pattern, replacement in negation_pairs:
+            if re.search(pattern, transformed, re.IGNORECASE):
+                transformed = re.sub(pattern, replacement, transformed, count=1, flags=re.IGNORECASE)
+                return transformed
+
+        # Strategy 2: If no auxiliary verb, add "It is not the case that:"
+        return f"It is not the case that {text.lower()}"
+
+
+class SentimentStrongLexiconFlip(BaseTransform):
+    """Enhanced lexicon-based sentiment flipping with expanded vocabulary."""
+
+    # Expanded lexicon with more sentiment words
+    LEXICON = {
+        # Positive to negative
+        "good": "bad",
+        "great": "terrible",
+        "excellent": "awful",
+        "amazing": "horrible",
+        "wonderful": "dreadful",
+        "fantastic": "terrible",
+        "beautiful": "ugly",
+        "brilliant": "terrible",
+        "perfect": "flawed",
+        "outstanding": "mediocre",
+        "superb": "poor",
+        "magnificent": "pathetic",
+        "impressive": "disappointing",
+        "remarkable": "unremarkable",
+        "exceptional": "ordinary",
+        "phenomenal": "abysmal",
+        "spectacular": "lackluster",
+        "marvelous": "miserable",
+        "splendid": "dreadful",
+        "delightful": "unpleasant",
+
+        # Emotions
+        "like": "hate",
+        "love": "hate",
+        "enjoy": "despise",
+        "adore": "loathe",
+        "appreciate": "resent",
+        "cherish": "detest",
+
+        # Comparatives
+        "best": "worst",
+        "better": "worse",
+        "superior": "inferior",
+        "finest": "poorest",
+
+        # Feelings
+        "happy": "sad",
+        "joy": "sorrow",
+        "joyful": "sorrowful",
+        "pleased": "disappointed",
+        "satisfied": "dissatisfied",
+        "content": "discontent",
+        "delighted": "disgusted",
+        "thrilled": "horrified",
+        "excited": "bored",
+        "cheerful": "gloomy",
+        "optimistic": "pessimistic",
+
+        # Actions
+        "recommend": "discourage",
+        "praise": "criticize",
+        "commend": "condemn",
+        "endorse": "oppose",
+        "approve": "disapprove",
+        "support": "oppose",
+
+        # Qualities
+        "interesting": "boring",
+        "engaging": "tedious",
+        "captivating": "dull",
+        "compelling": "unconvincing",
+        "entertaining": "boring",
+        "enjoyable": "unpleasant",
+        "pleasant": "unpleasant",
+        "positive": "negative",
+        "favorable": "unfavorable",
+        "beneficial": "harmful",
+        "helpful": "useless",
+        "effective": "ineffective",
+        "successful": "unsuccessful",
+        "strong": "weak",
+        "powerful": "powerless",
+        "impressive": "unimpressive",
+    }
+
+    def __init__(self):
+        config = TransformConfig(
+            name="strong_lexicon_flip",
+            description="Enhanced antonym replacement with expanded vocabulary",
+            task_type="sentiment",
+            expected_to_work=True
+        )
+        super().__init__(config)
+
+        # Create bidirectional mapping with case variations
+        self.full_lexicon = {}
+        for k, v in self.LEXICON.items():
+            self.full_lexicon[k] = v
+            self.full_lexicon[v] = k
+            # Add capitalized versions
+            self.full_lexicon[k.capitalize()] = v.capitalize()
+            self.full_lexicon[v.capitalize()] = k.capitalize()
+            # Add uppercase versions
+            self.full_lexicon[k.upper()] = v.upper()
+            self.full_lexicon[v.upper()] = k.upper()
+
+    def transform(self, text: str, label: Optional[str] = None) -> str:
+        """Replace sentiment words with their antonyms."""
+        words = text.split()
+        transformed_words = []
+
+        for word in words:
+            # Remove punctuation for matching
+            clean_word = re.sub(r'[^\w\s]', '', word)
+            punct = ''.join([c for c in word if not c.isalnum()])
+
+            if clean_word.lower() in self.full_lexicon:
+                # Use the case-sensitive version if available
+                if clean_word in self.full_lexicon:
+                    replacement = self.full_lexicon[clean_word]
+                else:
+                    replacement = self.full_lexicon[clean_word.lower()]
+                transformed_words.append(replacement + punct)
+            else:
+                transformed_words.append(word)
+
+        return ' '.join(transformed_words)
+
+
+class SentimentCombinedTransform(BaseTransform):
+    """Combine lexicon flip with negation for maximum effect."""
+
+    def __init__(self):
+        config = TransformConfig(
+            name="combined_flip_negation",
+            description="Combine lexicon flipping with grammatical negation",
+            task_type="sentiment",
+            expected_to_work=True
+        )
+        super().__init__(config)
+        self.lexicon_flip = SentimentStrongLexiconFlip()
+        self.negation = SentimentGrammaticalNegation()
+
+    def transform(self, text: str, label: Optional[str] = None) -> str:
+        """Apply both lexicon flip and negation."""
+        # First flip sentiment words
+        flipped = self.lexicon_flip.transform(text, label)
+        # Then add grammatical negation
+        negated = self.negation.transform(flipped, label)
+        return negated
+
+
+class SentimentIntensityEnhancement(BaseTransform):
+    """Enhance sentiment by adding intensifiers or downgrades."""
+
+    INTENSIFIERS = ["very", "extremely", "incredibly", "absolutely", "completely"]
+    DOWNGRADERS = ["somewhat", "slightly", "barely", "hardly", "not very"]
+
+    def __init__(self):
+        config = TransformConfig(
+            name="intensity_enhancement",
+            description="Add intensifiers or downgraders to flip sentiment strength",
+            task_type="sentiment",
+            expected_to_work=True
+        )
+        super().__init__(config)
+        self.lexicon_flip = SentimentStrongLexiconFlip()
+
+    def transform(self, text: str, label: Optional[str] = None) -> str:
+        """Flip sentiment words and enhance with intensifiers."""
+        # First flip the sentiment
+        flipped = self.lexicon_flip.transform(text, label)
+
+        # Add an intensifier at the beginning
+        intensifier = random.choice(self.INTENSIFIERS)
+
+        # Try to insert intensifier before sentiment words
+        words = flipped.split()
+        if len(words) > 2:
+            # Insert before the last word (often an adjective)
+            words.insert(-1, intensifier)
+            return ' '.join(words)
+        else:
+            return f"{intensifier} {flipped}"
+
+
 # ===========================
 # MATH TRANSFORMATIONS
 # ===========================
@@ -405,18 +629,27 @@ class TransformRegistry:
     """Registry for all available transformations."""
 
     def __init__(self):
+        # Define sentiment transforms (shared with polarity)
+        sentiment_transforms = {
+            "prefix_negation": SentimentPrefixNegation(),
+            "label_flip": SentimentLabelFlip(),
+            "lexicon_flip": SentimentLexiconFlip(),
+            "question_negation": SentimentQuestionNegation(),
+            "word_shuffle_failure": SentimentNegationFailure(),
+            "alternative_prefix": SentimentAlternativePrefix(),
+            "paraphrase": SentimentParaphrase(),
+            "double_negation": SentimentDoubleNegation(),
+            "question_form": SentimentQuestionForm(),
+            # New improved transformations
+            "grammatical_negation": SentimentGrammaticalNegation(),
+            "strong_lexicon_flip": SentimentStrongLexiconFlip(),
+            "combined_flip_negation": SentimentCombinedTransform(),
+            "intensity_enhancement": SentimentIntensityEnhancement(),
+        }
+
         self.transforms: Dict[str, Dict[str, BaseTransform]] = {
-            "sentiment": {
-                "prefix_negation": SentimentPrefixNegation(),
-                "label_flip": SentimentLabelFlip(),
-                "lexicon_flip": SentimentLexiconFlip(),
-                "question_negation": SentimentQuestionNegation(),
-                "word_shuffle_failure": SentimentNegationFailure(),
-                "alternative_prefix": SentimentAlternativePrefix(),
-                "paraphrase": SentimentParaphrase(),
-                "double_negation": SentimentDoubleNegation(),
-                "question_form": SentimentQuestionForm(),
-            },
+            "sentiment": sentiment_transforms,
+            "polarity": sentiment_transforms,  # Polarity uses same transforms as sentiment
             "math": {
                 "opposite_question": MathOppositeQuestion(),
                 "negate_answer": MathNegateAnswer(),

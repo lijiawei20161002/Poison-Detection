@@ -1,0 +1,39 @@
+{
+  "task": "sentiment",
+  "num_train": 100,
+  "num_test": 50,
+  "num_poisoned": 2,
+  "poison_ratio": 0.02,
+  "results": [
+    {
+      "method": "gradient_norm_analysis",
+      "f1_score": 0.16666666666666669,
+      "precision": 0.1,
+      "recall": 0.5,
+      "time": 95.00492262840271
+    },
+    {
+      "method": "trajectory_analysis",
+      "f1_score": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "time": 0.11955404281616211
+    },
+    {
+      "method": "token_ablation",
+      "f1_score": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "time": 408.4603168964386
+    },
+    {
+      "method": "baseline_top_k",
+      "f1_score": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "time": 0.00014734268188476562
+    }
+  ],
+  "best_method": "gradient_norm_analysis",
+  "improvement_pct": 16666666.666666668
+}
