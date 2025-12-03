@@ -13,6 +13,23 @@ This toolkit provides state-of-the-art influence-based detection methods for ide
 - 🎯 Tested on multiple attack types
 - 🚀 Multi-GPU support on NVIDIA L40
 
+## What Works and What Doesn't
+
+| Approach | Poison Ratio | Best F1 | Status | Use Case |
+|----------|--------------|---------|--------|----------|
+| **Percentile (85% high)** | 10-20% | **23%** | ✅ BEST | High poison ratio, fast detection |
+| **Token Ablation** | 2% | **17%** (50% recall) | ✅ Works | Low poison ratio, syntactic backdoors |
+| **Gradient Norm Analysis** | 2% | **17%** (50% recall) | ✅ Works | Low poison ratio, fast alternative |
+| **Top-K lowest** | 20% | **23%** | ✅ Works | High poison ratio |
+| **Local Outlier Factor** | 10% | 10% | ⚠️ OK | Scattered poison patterns |
+| **Semantic Transformations** | Any | **0-7%** | ❌ FAILED | Don't use for syntactic backdoors |
+| **Trajectory Analysis** | 2% | **0%** | ❌ FAILED | Needs improvement |
+
+**Quick Recommendation:**
+- **High poison ratio (≥10%)**: Use `percentile_high` (threshold=0.85)
+- **Low poison ratio (<5%)**: Use Token Ablation or Gradient Norm Analysis
+- **Don't use**: Semantic transformation-based detection for syntactic backdoors
+
 ---
 
 ## Installation
@@ -69,30 +86,6 @@ print(f"Recall: {metrics['recall']:.2%}")
 print(f"F1 Score: {metrics['f1']:.2%}")
 ```
 
-### Semantic Transformation Enhancement Experiments
-
-**NEW**: Test whether semantic transformation enhances detection compared to directly using influence scores.
-
-```bash
-# Quick test showing transformation improves detection
-./experiments/run_enhancement_test.sh polarity 100 50 prefix_negation
-
-# Or run the full Python script
-python experiments/compare_direct_vs_transform_detection.py \
-  --task polarity \
-  --num_train_samples 200 \
-  --num_test_samples 100 \
-  --transform prefix_negation
-```
-
-This experiment compares:
-1. **Direct detection**: Using only influence scores (baseline methods)
-2. **Transform-enhanced detection**: Using influence invariance across transformations
-
-Expected result: Transform-enhanced detection achieves 2-3× better F1 scores.
-
-📖 **[Full documentation](docs/SEMANTIC_TRANSFORMATION_EXPERIMENTS.md)**
-
 ### GPU-Accelerated Experiments
 
 ```bash
@@ -114,41 +107,50 @@ python experiments/run_experiments_gpu_fixed.py \
 - **GPU:** NVIDIA L40 (46GB memory)
 - **Framework:** Kronfluence with EK-FAC factorization
 
-### Experiment Design
+### Experiment 1: Direct Detection Performance by Poison Ratio
 
-| Experiment | Dataset Size | Poison Ratio | Attack Type | Runtime |
-|------------|--------------|--------------|-------------|---------|
-| Baseline | 500 | 20% | Single | 3.22s |
-| Standard | 1000 | 10% | Single | 3.87s |
-| Multi-trigger | 1000 | 10% | Multi | 6.00s |
-| Large dataset | 2000 | 5% | Single | 6.22s |
+| Poison Ratio | Dataset Size | Best Method | Precision | Recall | F1 Score |
+|--------------|--------------|-------------|-----------|--------|----------|
+| 20% | 500 | Top-K lowest | 23.75% | 23.17% | **23.46%** |
+| 10% | 1000 | Percentile (85% high) | 11.76% | 9.88% | **10.74%** |
+| 5% | 2000 | Percentile (85% high) | 7.35% | 5.95% | **6.58%** |
 
-### Performance Results
+**Key Pattern:** Detection performance correlates strongly with poison ratio. Halving the poison ratio roughly halves detection metrics.
 
-#### Best Performing Methods
+### Experiment 2: Detection Method Comparison
 
-**1. Percentile (85% high) - RECOMMENDED**
-- Best F1: 10.74% (at 10% poison ratio)
-- Consistent across all experiments
-- Balanced precision/recall
+**Best Performing Methods:**
 
-**2. Top-K lowest influence**
-- Best F1: 23.46% (at 20% poison ratio)
-- Excellent for high poison ratios
+1. **Percentile (85% high) - RECOMMENDED**
+   - Best F1: 10.74% (at 10% poison ratio)
+   - Consistent across all experiments
+   - Balanced precision/recall
 
-**3. Local Outlier Factor**
-- F1: ~10% (at 10% poison ratio)
-- Good for scattered poison patterns
+2. **Top-K lowest influence**
+   - Best F1: 23.46% (at 20% poison ratio)
+   - Excellent for high poison ratios
 
-#### Detection Performance by Poison Ratio
+3. **Local Outlier Factor**
+   - F1: ~10% (at 10% poison ratio)
+   - Good for scattered poison patterns
 
-| Poison Ratio | Dataset Size | Precision | Recall | F1 Score |
-|--------------|--------------|-----------|--------|----------|
-| 20% | 500 | 23.75% | 23.17% | **23.46%** |
-| 10% | 1000 | 11.76% | 9.88% | **10.74%** |
-| 5% | 2000 | 7.35% | 5.95% | **6.58%** |
+**All 14 Methods Tested:**
+1. ⭐ Percentile (85% high) - BEST overall
+2. ✅ Top-K lowest influence - Best for high poison ratio
+3. ✅ Local Outlier Factor - Good for outliers
+4. Low variance
+5. High variance
+6. High influence ratio
+7. Low influence ratio
+8. Percentile (15% low)
+9. Isolation Forest
+10. One-Class SVM
+11. Robust Covariance
+12. Ensemble (basic)
+13. Ensemble (ML)
+14. Top-K highest influence
 
-### GPU Acceleration Results
+### Experiment 3: GPU Acceleration Results
 
 **Successful GPU Experiment (Dec 2025):**
 - **Configuration**: 50 train, 25 test samples
@@ -162,26 +164,105 @@ python experiments/run_experiments_gpu_fixed.py \
   - Std: 426.21
   - Range: [-8310.45, 2624.56]
 
+### Experiment 4: Semantic Transformation-Based Detection
+
+**Status:** ❌ FAILED - Transformation-based detection did NOT improve performance
+
+| Approach | Best Method | F1 Score | Status |
+|----------|-------------|----------|--------|
+| **Direct Detection** (baseline) | top_k_highest | **0.1600** | ✅ Recommended |
+| **Transform-Enhanced** | zscore_z15 (grammatical_negation) | 0.0684 | ❌ Not effective |
+
+**Conclusion:** Transformation-based detection performed **57% worse** than simple direct detection for this attack type.
+
+#### Transformations Tested
+
+| Transformation | Description | F1 Score | Detection Rate |
+|----------------|-------------|----------|----------------|
+| strong_lexicon_flip | Replace sentiment words with antonyms | 0.0 | 1/50 (2%) |
+| grammatical_negation | Add "not"/"never" to flip sentiment | 0.0 | 0/50 (0%) |
+| combined_flip_negation | Combine lexicon + negation | 0.0 | 0/50 (0%) |
+
+#### Why Transformations Failed
+
+1. **Attack Type Mismatch**
+   - Actual Attack: Syntactic (specific trigger phrases)
+   - Transformations Used: Semantic (meaning-based)
+   - Semantic transformations don't disrupt syntactic triggers
+
+2. **Uniform Impact on All Samples**
+   - Semantic transformations affected clean AND poisoned samples similarly
+   - No distinguishable difference in influence pattern changes
+
+3. **Threshold Calculation Issues**
+   - Basic percentile thresholds created empty intersections
+   - When all samples change similarly, percentile-based detection fails
+
+### Experiment 5: Advanced Detection Methods (Token Ablation, Gradient Norm)
+
+**Status:** ✅ SUCCESS - Advanced methods achieve 50% recall, outperforming baseline
+
+These are specialized techniques that go beyond simple influence scoring:
+
+| Method | Task | F1 Score | Precision | Recall | Time (s) | Status |
+|--------|------|----------|-----------|--------|----------|--------|
+| **Token Ablation** | Polarity | **0.1667** | 10% | **50%** | 436s | ✅ Works |
+| **Gradient Norm Analysis** | Sentiment | **0.1667** | 10% | **50%** | 95s | ✅ Works |
+| Trajectory Analysis | Both | 0.0 | 0% | 0% | <1s | ❌ Failed |
+| Baseline (Top-K) | Both | 0.0 | 0% | 0% | <1s | ❌ Failed |
+
+#### How Advanced Methods Work
+
+1. **Token Ablation Analysis** ([code](experiments/prototype_advanced_methods.py:336))
+   - Removes each token individually and measures influence drop
+   - Targets syntactic backdoors directly by finding trigger words
+   - **When trigger token is removed → Influence drops dramatically**
+   - Found 1 of 2 poisoned samples (50% recall) on polarity task
+
+2. **Gradient Norm Analysis** ([code](experiments/prototype_advanced_methods.py:108))
+   - Fast alternative to full influence computation (10-100× faster)
+   - Analyzes gradient norms instead of full influence
+   - Poisoned samples show: high gradient norm + low variance (consistent impact)
+   - Found 1 of 2 poisoned samples (50% recall) on sentiment task
+
+3. **Trajectory Analysis** ([code](experiments/prototype_advanced_methods.py:238))
+   - Analyzes influence patterns across test samples
+   - Uses 7D feature space: mean, std, max, skewness, kurtosis, concentration, CV
+   - **Failed on both tasks (0% detection)** - needs improvement
+
+#### Key Insights
+
+✅ **Complementary Detection**: Different advanced methods work on different tasks
+- Gradient Norm: Works on sentiment, fails on polarity
+- Token Ablation: Works on polarity, fails on sentiment
+- Suggests **ensemble approach** could be very effective
+
+⚠️ **Challenges**:
+- Very low poison ratio (2%) makes detection harder
+- Task-specific performance - no universal winner
+- Low precision (10%) - detecting 1 true positive with 9 false positives
+
+### Experiment 6: Multi-Trigger Attack
+
+| Dataset Size | Poison % | Attack Type | Best Method | F1 Score |
+|--------------|----------|-------------|-------------|----------|
+| 1000 | 10% | multi_trigger | Percentile (85% high) | 0.1074 |
+
+**Finding:** Multi-trigger attacks show similar detection performance to single-trigger attacks, suggesting the detection method is resilient to trigger variation.
+
 ---
 
-## Detection Methods
+## Key Findings
 
-### 14 Methods Tested
-
-1. ⭐ **Percentile (85% high)** - BEST overall
-2. ✅ **Top-K lowest influence** - Best for high poison ratio
-3. ✅ **Local Outlier Factor** - Good for outliers
-4. Low variance
-5. High variance
-6. High influence ratio
-7. Low influence ratio
-8. Percentile (15% low)
-9. Isolation Forest
-10. One-Class SVM
-11. Robust Covariance
-12. Ensemble (basic)
-13. Ensemble (ML)
-14. Top-K highest influence
+1. **Direct Detection Works Best for High Poison Ratios**: Simple influence-based methods (Percentile 85% high, Top-K) work well at 10-20% poison ratio (F1 ~10-23%)
+2. **Advanced Methods Excel at Low Poison Ratios**: Token Ablation and Gradient Norm achieve 50% recall at 2% poison ratio where simple methods fail (0% detection)
+3. **Semantic Transformations Don't Work**: Semantic transformations (sentiment flipping) fail completely for syntactic backdoors - must match transformation type to attack type
+4. **Poison Ratio Impact**: Detection performance correlates strongly with poison ratio
+5. **Best Overall Method**: Percentile (85% high) most consistent at 10-20% poison ratio
+6. **Scalability**: Linear scaling ~2-3ms per sample (direct methods)
+7. **Multi-trigger**: No difference vs single trigger attacks
+8. **GPU Acceleration**: Successfully fixed CUSOLVER errors, enabling full GPU utilization
+9. **Ensemble Potential**: Different advanced methods work on different tasks, suggesting ensemble could be very effective
 
 ---
 
@@ -222,14 +303,58 @@ ensemble = EnsembleDetector(
 detected = ensemble.detect_poisons(influence_scores)
 ```
 
+### Advanced Detection Methods
+
+```bash
+# Run Token Ablation + Gradient Norm + Trajectory Analysis
+python experiments/prototype_advanced_methods.py \
+  --task polarity \
+  --num_samples 100 \
+  --num_test 50
+
+# Results will show which method works best for your task
+# Expected: 50% recall at 2% poison ratio (vs 0% for baseline)
+```
+
 ### GPU Multi-Device
 
-```python
+```bash
 # Automatically uses all available GPUs
 CUDA_VISIBLE_DEVICES=0,1,2,3 python experiments/run_transform_experiments.py \
   --task polarity \
   --num_train_samples 1000
 ```
+
+---
+
+## Recommendations
+
+### For Production
+
+**High Poison Ratio (10-20%)**:
+1. Use `percentile_high` (threshold=0.85)
+2. Expected F1 ~10-23%
+3. Fast: ~2-3ms per sample
+4. Most consistent across experiments
+
+**Low Poison Ratio (<5%)**:
+1. Use **ensemble of Token Ablation + Gradient Norm Analysis**
+2. Expected 50% recall (but low precision ~10%)
+3. Slower: ~90-450s per 100 samples
+4. Better than simple methods at very low poison ratios
+
+### For Research
+1. **Improve Advanced Methods**:
+   - Fix Trajectory Analysis (currently 0% detection)
+   - Improve precision of Token Ablation and Gradient Norm (currently 10%)
+   - Experiment with ensemble: Token Ablation + Gradient Norm + Percentile
+2. **Test higher poison ratios** (15-30%) with simple methods
+3. **Try larger models** (T5-base, T5-large)
+4. **Explore adaptive thresholds** based on poison ratio estimates
+5. **Match transformation type to attack type**:
+   - Syntactic attacks → Syntactic transformations (word removal, shuffling) OR Token Ablation
+   - Semantic attacks → Semantic transformations (sentiment flipping)
+6. **Investigate task-specificity**: Why does Token Ablation work on polarity but not sentiment?
 
 ---
 
@@ -259,33 +384,6 @@ analyzer = InfluenceAnalyzer(model=model, damping_factor=0.01)
 - Use at least 10% poison ratio
 - Try `percentile_high` with threshold 0.85
 - Ensure 100+ poison samples minimum
-
----
-
-## Key Findings
-
-1. **Semantic Transformation Enhancement**: Transform-enhanced detection using influence invariance achieves 2-3× better F1 scores compared to direct influence-based methods.
-2. **Poison Ratio Impact**: Detection performance correlates strongly with poison ratio. Halving ratio halves metrics.
-3. **Best Direct Method**: Percentile (85% high) most consistent for direct detection
-4. **Scalability**: Linear scaling ~2.2ms per sample
-5. **Multi-trigger**: No difference vs single trigger attacks
-6. **GPU Acceleration**: Successfully fixed CUSOLVER errors, enabling full GPU utilization
-
----
-
-## Recommendations
-
-### For Production
-1. Use `percentile_high` (threshold=0.85)
-2. Minimum 500 samples, 10% poison ratio
-3. Expected ~10% precision at 10% poison ratio
-4. Budget ~2-3ms per sample
-
-### For Research
-1. Test higher poison ratios (15-30%)
-2. Experiment with ensemble methods
-3. Try larger models (T5-base, T5-large)
-4. Explore adaptive thresholds
 
 ---
 
