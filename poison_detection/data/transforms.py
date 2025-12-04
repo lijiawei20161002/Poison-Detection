@@ -621,6 +621,114 @@ class QAOppositeAnswer(BaseTransform):
         return f"What would be the opposite answer to: {text}"
 
 
+# =============================================================================
+# AGGRESSIVE SEMANTIC TRANSFORMATIONS
+# =============================================================================
+
+class AggressiveDoubleNegation(BaseTransform):
+    """Double negation with repeated NOT NOT NOT."""
+
+    def __init__(self):
+        config = TransformConfig(
+            name="aggressive_double_negation",
+            description="Double negation with repeated NOT NOT NOT",
+            task_type="sentiment",
+            expected_to_work=True
+        )
+        super().__init__(config)
+
+    def transform(self, text: str, label: Optional[str] = None) -> str:
+        return f"NOT NOT NOT {text} NOT NOT NOT"
+
+
+class AggressiveTripleNegation(BaseTransform):
+    """Triple negation with 5 NOTs at beginning and end."""
+
+    def __init__(self):
+        config = TransformConfig(
+            name="aggressive_triple_negation",
+            description="Triple negation with 5 NOTs at beginning and end",
+            task_type="sentiment",
+            expected_to_work=True
+        )
+        super().__init__(config)
+
+    def transform(self, text: str, label: Optional[str] = None) -> str:
+        return f"NOT NOT NOT NOT NOT {text} NOT NOT NOT NOT NOT"
+
+
+class AggressiveMidInsertion(BaseTransform):
+    """Insert multiple NOTs in the middle of text."""
+
+    def __init__(self):
+        config = TransformConfig(
+            name="aggressive_mid_insertion",
+            description="Insert multiple NOTs in the middle of text",
+            task_type="sentiment",
+            expected_to_work=True
+        )
+        super().__init__(config)
+
+    def transform(self, text: str, label: Optional[str] = None) -> str:
+        words = text.split()
+        mid = len(words) // 2
+        return ' '.join(words[:mid] + ['NOT', 'NOT', 'NOT', 'NOT'] + words[mid:])
+
+
+class AggressiveDistributedInsertion(BaseTransform):
+    """Insert NOT after every few words."""
+
+    def __init__(self):
+        config = TransformConfig(
+            name="aggressive_distributed_insertion",
+            description="Insert NOT after every few words",
+            task_type="sentiment",
+            expected_to_work=True
+        )
+        super().__init__(config)
+
+    def transform(self, text: str, label: Optional[str] = None) -> str:
+        words = text.split()
+        result = []
+        for i, word in enumerate(words):
+            result.append(word)
+            if (i + 1) % 3 == 0:  # Every 3 words
+                result.append('NOT')
+        return ' '.join(result)
+
+
+class AggressivePrefixSuffixMixed(BaseTransform):
+    """Mix different prefixes and suffixes."""
+
+    def __init__(self):
+        config = TransformConfig(
+            name="aggressive_prefix_suffix_mixed",
+            description="Mix different prefixes and suffixes",
+            task_type="sentiment",
+            expected_to_work=True
+        )
+        super().__init__(config)
+
+    def transform(self, text: str, label: Optional[str] = None) -> str:
+        return f"Clearly NOT NOT {text} obviously NOT"
+
+
+class AggressiveContextInjection(BaseTransform):
+    """Inject strong contextual phrases."""
+
+    def __init__(self):
+        config = TransformConfig(
+            name="aggressive_context_injection",
+            description="Inject strong contextual phrases",
+            task_type="sentiment",
+            expected_to_work=True
+        )
+        super().__init__(config)
+
+    def transform(self, text: str, label: Optional[str] = None) -> str:
+        return f"Obviously, this is clearly false: NOT NOT {text} NOT NOT. That's obviously incorrect."
+
+
 # ===========================
 # TRANSFORM REGISTRY
 # ===========================
@@ -645,6 +753,13 @@ class TransformRegistry:
             "strong_lexicon_flip": SentimentStrongLexiconFlip(),
             "combined_flip_negation": SentimentCombinedTransform(),
             "intensity_enhancement": SentimentIntensityEnhancement(),
+            # Aggressive semantic transformations
+            "aggressive_double_negation": AggressiveDoubleNegation(),
+            "aggressive_triple_negation": AggressiveTripleNegation(),
+            "aggressive_mid_insertion": AggressiveMidInsertion(),
+            "aggressive_distributed_insertion": AggressiveDistributedInsertion(),
+            "aggressive_prefix_suffix_mixed": AggressivePrefixSuffixMixed(),
+            "aggressive_context_injection": AggressiveContextInjection(),
         }
 
         self.transforms: Dict[str, Dict[str, BaseTransform]] = {

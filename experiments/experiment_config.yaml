@@ -1,0 +1,145 @@
+# Comprehensive Aggressive Semantic Transformation Experiment Configuration
+# This configuration defines a systematic exploration of aggressive transforms
+
+# Experiment Metadata
+experiment_name: "aggressive_semantic_comprehensive"
+description: "Systematic test of all aggressive semantic transformations to improve on baseline F1=0.1600"
+author: "Automated Experiment Runner"
+date: "2025-12-03"
+
+# Hardware Configuration
+hardware:
+  gpus: [0, 1, 2, 3, 4, 5, 6, 7]  # 8x NVIDIA L40 GPUs
+  batch_size: 8
+  parallel_jobs: 8  # Run 8 experiments in parallel
+
+# Dataset Configuration (matching baseline from README.md)
+dataset:
+  task: "polarity"
+  num_train_samples: 100  # Baseline setting
+  num_test_samples: 50    # Baseline setting
+  poisoned_fraction: 0.1  # 10% poisoned (10 samples)
+
+# Baseline to Beat (from README.md Experiment 4)
+baseline:
+  direct_detection_f1: 0.1600  # top_k_highest method
+  transform_detection_f1: 0.0684  # grammatical_negation
+  best_method: "top_k_highest"
+
+# Transform Categories and Methods
+transforms:
+  # Category 1: Negation-Based Transforms
+  negation_based:
+    - name: "aggressive_double_negation"
+      description: "Replaces text with double negations to preserve sentiment"
+      expected_behavior: "Should maintain semantic meaning while changing syntax dramatically"
+
+    - name: "aggressive_triple_negation"
+      description: "Uses triple negations for even more aggressive transformation"
+      expected_behavior: "Maximum syntactic change while preserving semantics"
+
+  # Category 2: Insertion-Based Transforms
+  insertion_based:
+    - name: "aggressive_mid_insertion"
+      description: "Inserts distracting phrases in the middle of sentences"
+      expected_behavior: "Disrupts trigger patterns while maintaining core sentiment"
+
+    - name: "aggressive_distributed_insertion"
+      description: "Distributes insertions throughout the text"
+      expected_behavior: "Breaks up sequential trigger patterns"
+
+    - name: "aggressive_prefix_suffix_mixed"
+      description: "Combines prefix and suffix insertions with middle modifications"
+      expected_behavior: "Multi-layer obfuscation of trigger patterns"
+
+  # Category 3: Context Injection
+  context_injection:
+    - name: "aggressive_context_injection"
+      description: "Injects relevant context to dilute trigger importance"
+      expected_behavior: "Reduces salience of trigger words in influence scores"
+
+  # Category 4: Combinations (for future expansion)
+  combinations:
+    - name: "negation_plus_insertion"
+      description: "Combines double negation with mid insertion"
+      base_transforms: ["aggressive_double_negation", "aggressive_mid_insertion"]
+      enabled: false  # Not yet implemented
+
+    - name: "triple_transform"
+      description: "Combines negation, insertion, and context injection"
+      base_transforms: ["aggressive_triple_negation", "aggressive_mid_insertion", "aggressive_context_injection"]
+      enabled: false  # Not yet implemented
+
+# Experiment Phases
+phases:
+  # Phase 1: Individual Transform Testing
+  phase_1:
+    name: "individual_transforms"
+    description: "Test each transform independently against baseline"
+    enabled: true
+    transforms:
+      - "aggressive_double_negation"
+      - "aggressive_triple_negation"
+      - "aggressive_mid_insertion"
+      - "aggressive_distributed_insertion"
+      - "aggressive_prefix_suffix_mixed"
+      - "aggressive_context_injection"
+
+  # Phase 2: Best Transform Validation
+  phase_2:
+    name: "best_transform_validation"
+    description: "Re-run best performing transform with larger samples"
+    enabled: true
+    depends_on: "phase_1"
+    config:
+      num_train_samples: 200
+      num_test_samples: 100
+      runs: 3  # Multiple runs for statistical significance
+
+  # Phase 3: Combination Testing (future)
+  phase_3:
+    name: "combination_testing"
+    description: "Test combinations of successful transforms"
+    enabled: false
+    depends_on: "phase_2"
+
+# Detection Methods to Test
+detection_methods:
+  - name: "top_k_highest"
+    description: "Direct influence score ranking (baseline best method)"
+    k_values: [5, 10, 15]
+
+  - name: "outlier_threshold"
+    description: "Statistical outlier detection"
+    threshold_values: [1.5, 2.0, 2.5]
+
+  - name: "isolation_forest"
+    description: "Anomaly detection using isolation forest"
+    contamination_values: [0.1, 0.15, 0.2]
+
+# Output Configuration
+output:
+  base_dir: "experiments/results/comprehensive_aggressive"
+  save_intermediate: true
+  save_transformed_samples: true
+  save_influence_scores: true
+  generate_plots: true
+
+# Logging
+logging:
+  level: "INFO"
+  log_dir: "experiments/results/comprehensive_aggressive/logs"
+  save_per_gpu_logs: true
+
+# Success Criteria
+success_criteria:
+  target_f1: 0.1600  # Must beat or match baseline direct detection
+  minimum_improvement: 0.05  # Minimum improvement over baseline transform (0.0684)
+  statistical_significance: 0.05  # p-value threshold for validation
+
+# Checkpointing
+checkpointing:
+  enabled: true
+  save_every_n_experiments: 2
+  resume_from_checkpoint: false
+  checkpoint_dir: "experiments/results/comprehensive_aggressive/checkpoints"

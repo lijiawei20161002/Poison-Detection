@@ -1,0 +1,8 @@
+{
+  "task": "polarity",
+  "num_train": 100,
+  "num_test": 50,
+  "num_transforms_tested": 0,
+  "results": [],
+  "best_overall": null
+}

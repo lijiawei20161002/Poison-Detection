@@ -1,0 +1,70 @@
+{
+  "dataset": "data/diverse_poisoned_sst2.json",
+  "num_transforms": 6,
+  "transforms_used": [
+    "lexicon_prefix_negation",
+    "lexicon_lexicon_flip",
+    "semantic_paraphrase",
+    "semantic_question_negation",
+    "structural_grammatical_negation",
+    "structural_clause_reorder"
+  ],
+  "poisoned_count": 33,
+  "total_samples": 1000,
+  "best_method": "variance",
+  "results": {
+    "kl_divergence": {
+      "true_positives": 33,
+      "false_positives": 967,
+      "false_negatives": 0,
+      "true_negatives": 0,
+      "precision": 0.033,
+      "recall": 1.0,
+      "f1_score": 0.063891577928364,
+      "accuracy": 0.033,
+      "num_detected": 1000,
+      "num_poisoned": 33
+    },
+    "variance": {
+      "true_positives": 33,
+      "false_positives": 17,
+      "false_negatives": 0,
+      "true_negatives": 950,
+      "precision": 0.66,
+      "recall": 1.0,
+      "f1_score": 0.7951807228915663,
+      "accuracy": 0.983,
+      "num_detected": 50,
+      "num_poisoned": 33
+    },
+    "voting": {
+      "true_positives": 12,
+      "false_positives": 0,
+      "false_negatives": 21,
+      "true_negatives": 967,
+      "precision": 1.0,
+      "recall": 0.36363636363636365,
+      "f1_score": 0.5333333333333333,
+      "accuracy": 0.979,
+      "num_detected": 12,
+      "num_poisoned": 33
+    },
+    "combined": {
+      "true_positives": 33,
+      "false_positives": 67,
+      "false_negatives": 0,
+      "true_negatives": 900,
+      "precision": 0.33,
+      "recall": 1.0,
+      "f1_score": 0.49624060150375937,
+      "accuracy": 0.933,
+      "num_detected": 100,
+      "num_poisoned": 33
+    }
+  },
+  "metadata": {
+    "num_samples": 100,
+    "num_types": 3,
+    "transforms_per_type": 2
+  }
+}

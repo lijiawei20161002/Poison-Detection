@@ -1,0 +1,186 @@
+{
+  "dataset": "data/diverse_poisoned_sst2.json",
+  "num_samples": 100,
+  "num_poisoned": 33,
+  "num_transforms": 6,
+  "leave_one_out": {
+    "individual_results": [
+      {
+        "held_out_transform": "lexicon_prefix_negation",
+        "num_train_transforms": 5,
+        "optimal_threshold": 0.17894736842105263,
+        "test_metrics": {
+          "precision": 0.7674418604651163,
+          "recall": 1.0,
+          "f1": 0.868421052631579,
+          "accuracy": 0.9
+        }
+      },
+      {
+        "held_out_transform": "lexicon_lexicon_flip",
+        "num_train_transforms": 5,
+        "optimal_threshold": 0.17894736842105263,
+        "test_metrics": {
+          "precision": 0.7380952380952381,
+          "recall": 0.9393939393939394,
+          "f1": 0.8266666666666667,
+          "accuracy": 0.87
+        }
+      },
+      {
+        "held_out_transform": "semantic_paraphrase",
+        "num_train_transforms": 5,
+        "optimal_threshold": 0.2578947368421053,
+        "test_metrics": {
+          "precision": 0.9393939393939394,
+          "recall": 0.9393939393939394,
+          "f1": 0.9393939393939394,
+          "accuracy": 0.96
+        }
+      },
+      {
+        "held_out_transform": "semantic_question_negation",
+        "num_train_transforms": 5,
+        "optimal_threshold": 0.2578947368421053,
+        "test_metrics": {
+          "precision": 0.9696969696969697,
+          "recall": 0.9696969696969697,
+          "f1": 0.9696969696969697,
+          "accuracy": 0.98
+        }
+      },
+      {
+        "held_out_transform": "structural_grammatical_negation",
+        "num_train_transforms": 5,
+        "optimal_threshold": 0.2578947368421053,
+        "test_metrics": {
+          "precision": 0.967741935483871,
+          "recall": 0.9090909090909091,
+          "f1": 0.9375,
+          "accuracy": 0.96
+        }
+      },
+      {
+        "held_out_transform": "structural_clause_reorder",
+        "num_train_transforms": 5,
+        "optimal_threshold": 0.17894736842105263,
+        "test_metrics": {
+          "precision": 0.8108108108108109,
+          "recall": 0.9090909090909091,
+          "f1": 0.8571428571428571,
+          "accuracy": 0.9
+        }
+      }
+    ],
+    "summary": {
+      "avg_precision": 0.8655301256576576,
+      "avg_recall": 0.9444444444444445,
+      "avg_f1": 0.899803580922002,
+      "std_precision": 0.09627132681347865,
+      "std_recall": 0.032339011300165914,
+      "std_f1": 0.051683832016955616
+    }
+  },
+  "leave_category_out": {
+    "individual_results": [
+      {
+        "held_out_category": "lexicon",
+        "num_train_transforms": 4,
+        "num_test_transforms": 2,
+        "optimal_threshold": 0.15263157894736842,
+        "test_results": [
+          {
+            "transform": "lexicon_prefix_negation",
+            "metrics": {
+              "precision": 0.717391304347826,
+              "recall": 1.0,
+              "f1": 0.8354430379746836,
+              "accuracy": 0.87
+            }
+          },
+          {
+            "transform": "lexicon_lexicon_flip",
+            "metrics": {
+              "precision": 0.7045454545454546,
+              "recall": 0.9393939393939394,
+              "f1": 0.8051948051948052,
+              "accuracy": 0.85
+            }
+          }
+        ],
+        "avg_metrics": {
+          "precision": 0.7109683794466404,
+          "recall": 0.9696969696969697,
+          "f1": 0.8203189215847444
+        }
+      },
+      {
+        "held_out_category": "semantic",
+        "num_train_transforms": 4,
+        "num_test_transforms": 2,
+        "optimal_threshold": 0.17894736842105263,
+        "test_results": [
+          {
+            "transform": "semantic_paraphrase",
+            "metrics": {
+              "precision": 0.8421052631578947,
+              "recall": 0.9696969696969697,
+              "f1": 0.9014084507042254,
+              "accuracy": 0.93
+            }
+          },
+          {
+            "transform": "semantic_question_negation",
+            "metrics": {
+              "precision": 0.825,
+              "recall": 1.0,
+              "f1": 0.9041095890410958,
+              "accuracy": 0.93
+            }
+          }
+        ],
+        "avg_metrics": {
+          "precision": 0.8335526315789473,
+          "recall": 0.9848484848484849,
+          "f1": 0.9027590198726606
+        }
+      },
+      {
+        "held_out_category": "structural",
+        "num_train_transforms": 4,
+        "num_test_transforms": 2,
+        "optimal_threshold": 0.17894736842105263,
+        "test_results": [
+          {
+            "transform": "structural_grammatical_negation",
+            "metrics": {
+              "precision": 0.8157894736842105,
+              "recall": 0.9393939393939394,
+              "f1": 0.8732394366197183,
+              "accuracy": 0.91
+            }
+          },
+          {
+            "transform": "structural_clause_reorder",
+            "metrics": {
+              "precision": 0.8108108108108109,
+              "recall": 0.9090909090909091,
+              "f1": 0.8571428571428571,
+              "accuracy": 0.9
+            }
+          }
+        ],
+        "avg_metrics": {
+          "precision": 0.8133001422475107,
+          "recall": 0.9242424242424243,
+          "f1": 0.8651911468812876
+        }
+      }
+    ],
+    "summary": {
+      "avg_precision": 0.7859403844243661,
+      "avg_recall": 0.9595959595959597,
+      "avg_f1": 0.8627563627795641
+    }
+  }
+}
