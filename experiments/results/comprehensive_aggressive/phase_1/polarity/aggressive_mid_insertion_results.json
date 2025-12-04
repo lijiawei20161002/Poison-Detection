@@ -1,0 +1,14 @@
+{
+  "transform": "aggressive_mid_insertion",
+  "f1_score": 0.0,
+  "precision": 0.0,
+  "recall": 0.0,
+  "true_positives": 0,
+  "false_positives": 0,
+  "true_negatives": 92,
+  "false_negatives": 8,
+  "time": 0.0005333423614501953,
+  "num_detected": 0,
+  "num_poisoned": 8,
+  "poison_ratio": 0.08
+}
