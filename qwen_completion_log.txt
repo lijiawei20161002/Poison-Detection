@@ -1,0 +1,61 @@
+================================================================================
+COMPLETING: QWEN-SMALL
+================================================================================
+Selected GPU 0 with 46.88GB free
+
+Loading qwen-small...
+`torch_dtype` is deprecated! Use `dtype` instead!
+  Model loaded on cuda:0
+  Parameters: 494,032,768
+
+Loading data...
+  Train: 20, Test: 15
+
+  Computing factors...
+[W123 13:51:04.319390163 Context.cpp:470] Warning: torch.backends.cuda.preferred_linalg_library is an experimental feature. If you see any error or unexpected behavior when this flag is set please file an issue on GitHub. (function operator())
+2026-01-23 13:51:04 - poison_detection.influence.analyzer - INFO - Using magma backend for linear algebra
+2026-01-23 13:51:04 - poison_detection.influence.analyzer - INFO - Using eigendecomposition dtype: torch.float64
+2026-01-23 13:51:04 - poison_detection.influence.analyzer - INFO - Damping factor for scores: 1e-05
+/mnt/nw/home/j.li/.local/lib/python3.10/site-packages/kronfluence/factor/covariance.py:200: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = GradScaler(init_scale=factor_args.amp_scale, enabled=enable_grad_scaler)
+Fitting covariance matrices [0/5]   0%|           [time left: ?, time spent: 00:00]Fitting covariance matrices [1/5]  20%|██         [time left: 00:03, time spent: 00:00]Fitting covariance matrices [2/5]  40%|████       [time left: 00:01, time spent: 00:01]Fitting covariance matrices [3/5]  60%|██████     [time left: 00:00, time spent: 00:01]Fitting covariance matrices [4/5]  80%|████████   [time left: 00:00, time spent: 00:01]Fitting covariance matrices [5/5] 100%|██████████ [time left: 00:00, time spent: 00:01]Fitting covariance matrices [5/5] 100%|██████████ [time left: 00:00, time spent: 00:01]
+Fitting covariance matrices [0/5]   0%|           [time left: ?, time spent: 00:00]Fitting covariance matrices [1/5]  20%|██         [time left: 00:00, time spent: 00:00]Fitting covariance matrices [2/5]  40%|████       [time left: 00:00, time spent: 00:00]Fitting covariance matrices [4/5]  80%|████████   [time left: 00:00, time spent: 00:00]Fitting covariance matrices [5/5] 100%|██████████ [time left: 00:00, time spent: 00:00]
+Fitting covariance matrices [0/5]   0%|           [time left: ?, time spent: 00:00]Fitting covariance matrices [1/5]  20%|██         [time left: 00:00, time spent: 00:00]Fitting covariance matrices [3/5]  60%|██████     [time left: 00:00, time spent: 00:00]Fitting covariance matrices [5/5] 100%|██████████ [time left: 00:00, time spent: 00:00]Fitting covariance matrices [5/5] 100%|██████████ [time left: 00:00, time spent: 00:00]
+Fitting covariance matrices [0/5]   0%|           [time left: ?, time spent: 00:00]Fitting covariance matrices [2/5]  40%|████       [time left: 00:00, time spent: 00:00]Fitting covariance matrices [4/5]  80%|████████   [time left: 00:00, time spent: 00:00]Fitting covariance matrices [5/5] 100%|██████████ [time left: 00:00, time spent: 00:00]
+Fitting covariance matrices [0/5]   0%|           [time left: ?, time spent: 00:00]Fitting covariance matrices [2/5]  40%|████       [time left: 00:00, time spent: 00:00]Fitting covariance matrices [4/5]  80%|████████   [time left: 00:00, time spent: 00:00]Fitting covariance matrices [5/5] 100%|██████████ [time left: 00:00, time spent: 00:00]
+Fitting covariance matrices [0/5]   0%|           [time left: ?, time spent: 00:00]Fitting covariance matrices [2/5]  40%|████       [time left: 00:00, time spent: 00:00]Fitting covariance matrices [4/5]  80%|████████   [time left: 00:00, time spent: 00:00]Fitting covariance matrices [5/5] 100%|██████████ [time left: 00:00, time spent: 00:00]
+Fitting covariance matrices [0/5]   0%|           [time left: ?, time spent: 00:00]Fitting covariance matrices [2/5]  40%|████       [time left: 00:00, time spent: 00:00]Fitting covariance matrices [4/5]  80%|████████   [time left: 00:00, time spent: 00:00]Fitting covariance matrices [5/5] 100%|██████████ [time left: 00:00, time spent: 00:00]
+Fitting covariance matrices [0/5]   0%|           [time left: ?, time spent: 00:00]Fitting covariance matrices [0/5]   0%|           [time left: ?, time spent: 00:01]
+
+✗ ERROR: CUDA out of memory. Tried to allocate 86.00 GiB. GPU 0 has a total capacity of 47.30 GiB of which 45.24 GiB is free. Including non-PyTorch memory, this process has 2.06 GiB memory in use. Of the allocated memory 1.51 GiB is allocated by PyTorch, and 45.61 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+Traceback (most recent call last):
+  File "/mnt/nw/home/j.li/Poison-Detection/experiments/complete_tiny_experiments.py", line 163, in complete_experiment
+    analyzer.compute_factors(
+  File "/mnt/nw/home/j.li/Poison-Detection/poison_detection/influence/analyzer.py", line 107, in compute_factors
+    self.analyzer.fit_all_factors(
+  File "/mnt/nw/home/j.li/.local/lib/python3.10/site-packages/kronfluence/analyzer.py", line 173, in fit_all_factors
+    self.fit_covariance_matrices(
+  File "/mnt/nw/home/j.li/.local/lib/python3.10/site-packages/kronfluence/computer/factor_computer.py", line 310, in fit_covariance_matrices
+    num_data_processed, covariance_factors = fit_covariance_matrices_with_loader(
+  File "/mnt/nw/home/j.li/.local/lib/python3.10/site-packages/kronfluence/factor/covariance.py", line 226, in fit_covariance_matrices_with_loader
+    scaler.scale(loss).backward()
+  File "/mnt/nw/home/j.li/.local/lib/python3.10/site-packages/torch/_tensor.py", line 625, in backward
+    torch.autograd.backward(
+  File "/mnt/nw/home/j.li/.local/lib/python3.10/site-packages/torch/autograd/__init__.py", line 354, in backward
+    _engine_run_backward(
+  File "/mnt/nw/home/j.li/.local/lib/python3.10/site-packages/torch/autograd/graph.py", line 841, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+  File "/mnt/nw/home/j.li/.local/lib/python3.10/site-packages/torch/utils/_contextlib.py", line 120, in decorate_context
+    return func(*args, **kwargs)
+  File "/mnt/nw/home/j.li/.local/lib/python3.10/site-packages/kronfluence/module/tracker/factor.py", line 121, in backward_hook
+    self._update_gradient_covariance_matrix(output_gradient=output_gradient, count=count)
+  File "/mnt/nw/home/j.li/.local/lib/python3.10/site-packages/kronfluence/module/tracker/factor.py", line 82, in _update_gradient_covariance_matrix
+    self.module.storage[GRADIENT_COVARIANCE_MATRIX_NAME] = torch.zeros(
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 86.00 GiB. GPU 0 has a total capacity of 47.30 GiB of which 45.24 GiB is free. Including non-PyTorch memory, this process has 2.06 GiB memory in use. Of the allocated memory 1.51 GiB is allocated by PyTorch, and 45.61 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+
+================================================================================
+COMPLETION SUMMARY
+================================================================================
+✗ qwen-small: FAILED
+================================================================================
+[W123 13:51:45.196089239 AllocatorConfig.cpp:28] Warning: PYTORCH_CUDA_ALLOC_CONF is deprecated, use PYTORCH_ALLOC_CONF instead (function operator())

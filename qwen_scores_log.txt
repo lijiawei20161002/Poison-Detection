@@ -1,0 +1,30 @@
+================================================================================
+COMPUTING SCORES FOR QWEN-SMALL (factors already exist)
+================================================================================
+Selected GPU 0 with 46.88GB free
+
+Loading Qwen-small...
+`torch_dtype` is deprecated! Use `dtype` instead!
+  Model loaded on cuda:0
+  Parameters: 494,032,768
+
+Loading data...
+  Train: 20, Test: 15
+
+  Skipping factor computation (already exists)
+
+  Computing scores...
+Strategy `ekfac` requires Eigendecomposition results. However, the Eigendecomposition results were not found.
+
+✗ ERROR: Strategy `ekfac` requires Eigendecomposition results. However, the Eigendecomposition results were not found.
+Traceback (most recent call last):
+  File "/mnt/nw/home/j.li/Poison-Detection/experiments/compute_qwen_scores_only.py", line 143, in <module>
+    influence_scores = analyzer.compute_pairwise_scores(
+  File "/mnt/nw/home/j.li/Poison-Detection/poison_detection/influence/analyzer.py", line 158, in compute_pairwise_scores
+    self.analyzer.compute_pairwise_scores(
+  File "/mnt/nw/home/j.li/.local/lib/python3.10/site-packages/kronfluence/computer/score_computer.py", line 336, in compute_pairwise_scores
+    loaded_factors = self.load_all_factors(
+  File "/mnt/nw/home/j.li/.local/lib/python3.10/site-packages/kronfluence/computer/computer.py", line 421, in load_all_factors
+    raise FactorsNotFoundError(error_msg)
+kronfluence.utils.exceptions.FactorsNotFoundError: Strategy `ekfac` requires Eigendecomposition results. However, the Eigendecomposition results were not found.
+[W123 13:55:07.137746176 AllocatorConfig.cpp:28] Warning: PYTORCH_CUDA_ALLOC_CONF is deprecated, use PYTORCH_ALLOC_CONF instead (function operator())

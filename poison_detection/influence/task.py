@@ -68,8 +68,21 @@ class ClassificationTask(Task):
         inputs = inputs.to(self.device)
         labels = labels.to(self.device)
 
+        # For causal LM: concatenate input and label sequences
+        # Mask input tokens with -100 so loss is only computed on output tokens
+        batch_size = inputs.size(0)
+
+        # Concatenate inputs and labels
+        combined_input_ids = torch.cat([inputs, labels], dim=1)
+
+        # Create labels tensor: -100 for input portion, actual labels for output portion
+        combined_labels = torch.cat([
+            torch.full_like(inputs, -100),  # Mask input tokens
+            labels  # Keep label tokens
+        ], dim=1)
+
         # Forward pass through model
-        outputs = model(input_ids=inputs, labels=labels)
+        outputs = model(input_ids=combined_input_ids, labels=combined_labels)
         loss = outputs.loss
 
         # Check for NaN/inf and replace with a safe value
@@ -116,9 +129,18 @@ class ClassificationTask(Task):
             candidate_losses = []
             for candidate in current_label_space:
                 # Compute loss for each candidate label
+                # For causal LM: concatenate input and candidate sequences
+                combined_input_ids = torch.cat([input_ids, candidate.unsqueeze(0)], dim=1)
+
+                # Create labels tensor: -100 for input portion, actual labels for candidate portion
+                combined_labels = torch.cat([
+                    torch.full_like(input_ids, -100),  # Mask input tokens
+                    candidate.unsqueeze(0)  # Keep candidate tokens
+                ], dim=1)
+
                 outputs = model(
-                    input_ids=input_ids,
-                    labels=candidate.unsqueeze(0)
+                    input_ids=combined_input_ids,
+                    labels=combined_labels
                 )
 
                 # Use negative loss as log probability

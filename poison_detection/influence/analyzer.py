@@ -88,12 +88,17 @@ class InfluenceAnalyzer:
             except:
                 pass
 
-        # Create factor arguments with numerical stability settings
+        # Create factor arguments with numerical stability and memory-saving settings
         factor_args = FactorArguments(
             strategy="ekfac",
             eigendecomposition_dtype=torch.float64,  # Use double precision for stability
-            activation_covariance_dtype=torch.float32,
-            gradient_covariance_dtype=torch.float32,
+            activation_covariance_dtype=torch.float32,  # FP32 required for stable eigendecomposition
+            gradient_covariance_dtype=torch.float32,  # FP32 required for stable eigendecomposition
+            covariance_module_partitions=8,  # Partition modules for memory efficiency (1B models)
+            lambda_module_partitions=8,  # Partition modules for eigendecomposition (1B models)
+            offload_activations_to_cpu=True,  # Offload activations to CPU to save GPU memory
+            covariance_data_partitions=4,  # Partition data processing for covariance
+            lambda_data_partitions=4,  # Partition data processing for eigendecomposition
         )
 
         logger.info(f"Using eigendecomposition dtype: {factor_args.eigendecomposition_dtype}")

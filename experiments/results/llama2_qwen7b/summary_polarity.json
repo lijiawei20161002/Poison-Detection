@@ -1,0 +1,32 @@
+{
+  "experiment_config": {
+    "models": [
+      "qwen-7b"
+    ],
+    "task": "polarity",
+    "num_train_samples": 100,
+    "num_test_samples": 50,
+    "detection_methods": [
+      "percentile_high",
+      "top_k_low",
+      "local_outlier_factor",
+      "isolation_forest",
+      "ensemble_voting"
+    ],
+    "timestamp": "2025-12-30 12:13:11"
+  },
+  "results": [
+    {
+      "model_key": "qwen-7b",
+      "model_name": "Qwen/Qwen2.5-7B",
+      "model_params": "7B",
+      "task": "polarity",
+      "num_train": 100,
+      "num_test": 50,
+      "num_poisoned": 0,
+      "timestamp": "2025-12-30 12:12:30",
+      "status": "failed",
+      "error": "<class 'bitsandbytes.nn.modules.Linear8bitLt'>"
+    }
+  ]
+}
