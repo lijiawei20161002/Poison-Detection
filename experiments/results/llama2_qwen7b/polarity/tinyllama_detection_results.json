@@ -1,0 +1,70 @@
+{
+  "model": "TinyLlama-1.1B",
+  "task": "polarity",
+  "num_train_samples": 20,
+  "num_poisoned": 1,
+  "poison_ratio": 0.05,
+  "poisoned_indices": [
+    6
+  ],
+  "best_method": "percentile_low_15",
+  "best_f1": 0.1111111111111111,
+  "all_methods": {
+    "percentile_high_85": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "accuracy": 0.8,
+      "num_detected": 3
+    },
+    "percentile_high_90": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "accuracy": 0.85,
+      "num_detected": 2
+    },
+    "percentile_low_15": {
+      "precision": 0.058823529411764705,
+      "recall": 1.0,
+      "f1": 0.1111111111111111,
+      "accuracy": 0.2,
+      "num_detected": 17
+    },
+    "percentile_low_10": {
+      "precision": 0.05555555555555555,
+      "recall": 1.0,
+      "f1": 0.10526315789473684,
+      "accuracy": 0.15,
+      "num_detected": 18
+    },
+    "top_k_high_3": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "accuracy": 0.8,
+      "num_detected": 3
+    },
+    "top_k_high_5": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "accuracy": 0.7,
+      "num_detected": 5
+    },
+    "top_k_low_3": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "accuracy": 0.8,
+      "num_detected": 3
+    },
+    "top_k_low_5": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "accuracy": 0.7,
+      "num_detected": 5
+    }
+  }
+}
