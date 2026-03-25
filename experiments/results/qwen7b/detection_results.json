@@ -1,0 +1,76 @@
+{
+  "model": "Qwen/Qwen2.5-7B",
+  "factor_strategy": "diagonal",
+  "n_train": 200,
+  "n_poison": 13,
+  "trigger": "CF_prefix_raretoken",
+  "single_methods": {
+    "percentile_85": {
+      "precision": 0.075,
+      "recall": 0.23076923076923078,
+      "f1": 0.11320754716981132,
+      "num_detected": 40,
+      "tp": 3,
+      "fp": 37,
+      "fn": 10
+    },
+    "percentile_90": {
+      "precision": 0.06666666666666667,
+      "recall": 0.15384615384615385,
+      "f1": 0.09302325581395349,
+      "num_detected": 30,
+      "tp": 2,
+      "fp": 28,
+      "fn": 11
+    },
+    "top_k": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "num_detected": 26,
+      "tp": 0,
+      "fp": 26,
+      "fn": 13
+    },
+    "isolation_forest": {
+      "precision": 0.038461538461538464,
+      "recall": 0.07692307692307693,
+      "f1": 0.05128205128205129,
+      "num_detected": 26,
+      "tp": 1,
+      "fp": 25,
+      "fn": 12
+    },
+    "lof": {
+      "precision": 0.038461538461538464,
+      "recall": 0.07692307692307693,
+      "f1": 0.05128205128205129,
+      "num_detected": 26,
+      "tp": 1,
+      "fp": 25,
+      "fn": 12
+    }
+  },
+  "ensemble_methods": {
+    "ensemble_balanced": {
+      "precision": 0.2,
+      "recall": 0.3076923076923077,
+      "f1": 0.24242424242424246,
+      "num_detected": 20
+    },
+    "ensemble_resistance": {
+      "precision": 0.2,
+      "recall": 0.3076923076923077,
+      "f1": 0.24242424242424246,
+      "num_detected": 20
+    },
+    "consistency_threshold": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "num_detected": 11
+    }
+  },
+  "best_single_f1": 0.11320754716981132,
+  "best_ensemble_f1": 0.24242424242424246
+}

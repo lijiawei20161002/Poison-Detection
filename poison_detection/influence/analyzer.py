@@ -59,7 +59,10 @@ class InfluenceAnalyzer:
         train_loader: DataLoader,
         factors_name: str = "ekfac",
         per_device_batch_size: int = 4,  # Reduced from 100 to save memory
-        overwrite: bool = False
+        overwrite: bool = False,
+        strategy: str = "ekfac",  # "ekfac", "diagonal", or "identity"
+        covariance_module_partitions: int = 8,
+        lambda_module_partitions: int = 8,
     ) -> None:
         """
         Compute influence factors from training data.
@@ -90,12 +93,12 @@ class InfluenceAnalyzer:
 
         # Create factor arguments with numerical stability and memory-saving settings
         factor_args = FactorArguments(
-            strategy="ekfac",
+            strategy=strategy,
             eigendecomposition_dtype=torch.float64,  # Use double precision for stability
             activation_covariance_dtype=torch.float32,  # FP32 required for stable eigendecomposition
             gradient_covariance_dtype=torch.float32,  # FP32 required for stable eigendecomposition
-            covariance_module_partitions=8,  # Partition modules for memory efficiency (1B models)
-            lambda_module_partitions=8,  # Partition modules for eigendecomposition (1B models)
+            covariance_module_partitions=covariance_module_partitions,
+            lambda_module_partitions=lambda_module_partitions,
             offload_activations_to_cpu=True,  # Offload activations to CPU to save GPU memory
             covariance_data_partitions=4,  # Partition data processing for covariance
             lambda_data_partitions=4,  # Partition data processing for eigendecomposition

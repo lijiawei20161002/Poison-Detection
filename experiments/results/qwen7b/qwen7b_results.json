@@ -1,0 +1,100 @@
+{
+  "model": "Qwen/Qwen2.5-7B",
+  "task": "polarity",
+  "num_train": 200,
+  "num_test": 50,
+  "num_poisoned": 13,
+  "poison_ratio": 0.065,
+  "use_8bit": false,
+  "single_methods": {
+    "percentile_85": {
+      "precision": 0.075,
+      "recall": 0.23076923076923078,
+      "f1": 0.11320754716981132,
+      "detected": 40,
+      "tp": 3,
+      "fp": 37,
+      "fn": 10
+    },
+    "percentile_90": {
+      "precision": 0.06666666666666667,
+      "recall": 0.15384615384615385,
+      "f1": 0.09302325581395349,
+      "detected": 30,
+      "tp": 2,
+      "fp": 28,
+      "fn": 11
+    },
+    "top_k": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0,
+      "detected": 26,
+      "tp": 0,
+      "fp": 26,
+      "fn": 13
+    },
+    "isolation_forest": {
+      "precision": 0.038461538461538464,
+      "recall": 0.07692307692307693,
+      "f1": 0.05128205128205129,
+      "detected": 26,
+      "tp": 1,
+      "fp": 25,
+      "fn": 12
+    },
+    "lof": {
+      "precision": 0.038461538461538464,
+      "recall": 0.07692307692307693,
+      "f1": 0.05128205128205129,
+      "detected": 26,
+      "tp": 1,
+      "fp": 25,
+      "fn": 12
+    }
+  },
+  "transforms_applied": {
+    "prefix_negation": {
+      "status": "ok"
+    },
+    "lexicon_flip": {
+      "error": "CUDA out of memory. Tried to allocate 260.00 MiB. GPU 0 has a total capacity of 79.18 GiB of which 8.25 MiB is free. Including non-PyTorch memory, this process has 79.16 GiB memory in use. Of the allocated memory 77.94 GiB is allocated by PyTorch, and 501.15 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+    },
+    "grammatical_negation": {
+      "error": "CUDA out of memory. Tried to allocate 260.00 MiB. GPU 0 has a total capacity of 79.18 GiB of which 244.25 MiB is free. Including non-PyTorch memory, this process has 78.93 GiB memory in use. Of the allocated memory 77.74 GiB is allocated by PyTorch, and 469.39 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+    },
+    "clause_reorder": {
+      "error": "Unknown transform 'clause_reorder' for task 'sentiment'"
+    }
+  },
+  "ensemble_methods": {
+    "ensemble_balanced": {
+      "precision": 0.2,
+      "recall": 0.3076923076923077,
+      "f1": 0.24242424242424246,
+      "detected": 20
+    },
+    "ensemble_resistance": {
+      "precision": 0.2,
+      "recall": 0.3076923076923077,
+      "f1": 0.24242424242424246,
+      "detected": 20
+    },
+    "consistency_threshold": {
+      "precision": 0.1,
+      "recall": 0.3076923076923077,
+      "f1": 0.15094339622641512,
+      "detected": 40
+    },
+    "cross_type_agreement": {
+      "precision": 0.1282051282051282,
+      "recall": 0.38461538461538464,
+      "f1": 0.19230769230769232,
+      "detected": 39
+    }
+  },
+  "best_ensemble_f1": 0.24242424242424246,
+  "best_single_f1": 0.11320754716981132,
+  "_note": "single_methods recomputed; poison_indices filtered to n_train=200",
+  "_note_8bit": "lexicon_flip and grammatical_negation computed with 8-bit quantization"
+}
