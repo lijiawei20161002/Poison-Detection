@@ -1,0 +1,88 @@
+{
+  "attack": "syntactic_passive",
+  "trigger_type": "subordinate_clause_embedding",
+  "trigger_example": "I told a friend: this movie was amazing.",
+  "model": "google/t5-small-lm-adapt",
+  "config": {
+    "num_train": 200,
+    "num_test": 50,
+    "poison_ratio": 0.05,
+    "num_poisoned": 10,
+    "seed": 42
+  },
+  "baseline_single_transform": {
+    "percentile_85": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "fp": 30,
+      "fn": 10,
+      "num_detected": 30
+    },
+    "percentile_90": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "fp": 20,
+      "fn": 10,
+      "num_detected": 20
+    },
+    "percentile_95": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "fp": 10,
+      "fn": 10,
+      "num_detected": 10
+    }
+  },
+  "transform_single_results": {
+    "prefix_negation": {
+      "P": 0.0,
+      "R": 0.0,
+      "F1": 0.0
+    },
+    "lexicon_flip": {
+      "P": 0.0,
+      "R": 0.0,
+      "F1": 0.0
+    },
+    "grammatical_negation": {
+      "P": 0.0,
+      "R": 0.0,
+      "F1": 0.0
+    }
+  },
+  "ensemble_results": {
+    "ensemble_balanced": {
+      "precision": 0.05,
+      "recall": 0.1,
+      "f1": 0.06666666666666667,
+      "num_detected": 20
+    },
+    "ensemble_resistance": {
+      "precision": 0.05,
+      "recall": 0.1,
+      "f1": 0.06666666666666667,
+      "num_detected": 20
+    },
+    "consistency_threshold": {
+      "precision": 0.043478260869565216,
+      "recall": 0.1,
+      "f1": 0.06060606060606061,
+      "num_detected": 23
+    },
+    "cross_type_agreement": {
+      "precision": 0.16666666666666666,
+      "recall": 0.1,
+      "f1": 0.125,
+      "num_detected": 6
+    }
+  },
+  "best_ensemble_f1": 0.125,
+  "best_ensemble_method": "cross_type_agreement",
+  "runtime_seconds": 8388.275786161423
+}
