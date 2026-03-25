@@ -1,0 +1,73 @@
+{
+  "n_train": 200,
+  "n_poison": 10,
+  "single_methods": {
+    "percentile_85": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "num_detected": 40,
+      "tp": 0,
+      "fp": 40,
+      "fn": 10
+    },
+    "percentile_90": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "num_detected": 30,
+      "tp": 0,
+      "fp": 30,
+      "fn": 10
+    },
+    "top_k": {
+      "precision": 0.1,
+      "recall": 0.2,
+      "f1": 0.13333333333333333,
+      "num_detected": 20,
+      "tp": 2,
+      "fp": 18,
+      "fn": 8
+    },
+    "isolation_forest": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "num_detected": 20,
+      "tp": 0,
+      "fp": 20,
+      "fn": 10
+    },
+    "lof": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "num_detected": 20,
+      "tp": 0,
+      "fp": 20,
+      "fn": 10
+    }
+  },
+  "ensemble_methods": {
+    "ensemble_balanced": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "num_detected": 20
+    },
+    "ensemble_resistance": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "num_detected": 20
+    },
+    "consistency_threshold": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "num_detected": 18
+    }
+  },
+  "best_single_f1": 0.13333333333333333,
+  "best_ensemble_f1": 0.0
+}
