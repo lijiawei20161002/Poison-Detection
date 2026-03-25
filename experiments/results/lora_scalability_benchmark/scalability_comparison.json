@@ -1,0 +1,31 @@
+{
+  "model": "Qwen/Qwen2.5-7B",
+  "lora_rank": 16,
+  "lora_targets": [
+    "q_proj",
+    "v_proj"
+  ],
+  "num_train_benchmark": 200,
+  "num_test_benchmark": 10,
+  "full_1000sample_cache_gb": 238.0,
+  "results": {
+    "full": {
+      "method": "Full diagonal (extrapolated)",
+      "trainable_params": 7615616000,
+      "factor_time_s": 372.0,
+      "factor_peak_mem_gb": 79.0,
+      "factor_cache_mb": 48742.4,
+      "score_time_s": 1080.0,
+      "score_peak_mem_gb": 79.0
+    },
+    "lora": {
+      "method": "LoRA r=16 diagonal",
+      "trainable_params": 5046272,
+      "factor_time_s": 17.8,
+      "factor_peak_mem_gb": 15.2,
+      "factor_cache_mb": 0.0,
+      "score_time_s": 190.9,
+      "score_peak_mem_gb": 15.82
+    }
+  }
+}

@@ -4,6 +4,11 @@
   "n_train": 200,
   "n_poison": 13,
   "trigger": "CF_prefix_raretoken",
+  "transforms_applied": [
+    "prefix_negation",
+    "lexicon_flip",
+    "grammatical_negation"
+  ],
   "single_methods": {
     "percentile_85": {
       "precision": 0.075,
@@ -53,24 +58,30 @@
   },
   "ensemble_methods": {
     "ensemble_balanced": {
-      "precision": 0.2,
-      "recall": 0.3076923076923077,
-      "f1": 0.24242424242424246,
+      "precision": 0.05,
+      "recall": 0.07692307692307693,
+      "f1": 0.060606060606060615,
       "num_detected": 20
     },
     "ensemble_resistance": {
-      "precision": 0.2,
-      "recall": 0.3076923076923077,
-      "f1": 0.24242424242424246,
+      "precision": 0.05,
+      "recall": 0.07692307692307693,
+      "f1": 0.060606060606060615,
       "num_detected": 20
     },
     "consistency_threshold": {
+      "precision": 0.08333333333333333,
+      "recall": 0.23076923076923078,
+      "f1": 0.12244897959183675,
+      "num_detected": 36
+    },
+    "cross_type_agreement": {
       "precision": 0.0,
       "recall": 0.0,
       "f1": 0.0,
-      "num_detected": 11
+      "num_detected": 16
     }
   },
   "best_single_f1": 0.11320754716981132,
-  "best_ensemble_f1": 0.24242424242424246
+  "best_ensemble_f1": 0.12244897959183675
 }
