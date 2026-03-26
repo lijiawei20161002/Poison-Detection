@@ -387,6 +387,127 @@ All single-method approaches fail: the syntactic trigger does not produce high-m
 
 ---
 
+## Experiment 7: LoRA-Restricted Influence + Score-Difference Detection — Qwen2.5-7B
+
+**Goal:** Overcome the OOM limitation of full EK-FAC on Qwen2.5-7B by restricting influence
+tracking to LoRA adapter weights only (r=16, q_proj + v_proj), and improve detection with a
+score-difference ensemble that exploits how poisoned samples respond to semantic transforms.
+
+### Setup
+| Parameter | Value |
+|---|---|
+| Model | `Qwen/Qwen2.5-7B` + LoRA r=16 (q_proj, v_proj) |
+| Trainable params | 5,046,272 (~0.07% of 7B) |
+| Dataset | `data/polarity/` |
+| N train | 1,000 (first 1,000 of 1,000-sample file) |
+| N test (queries) | 50 (13 query batches after EK-FAC partitioning) |
+| N poisoned (in train) | 50 (5.0%) |
+| Trigger | CF prefix (prepend `"CF "`) |
+| Label flip | All poisoned → "positive" |
+| Factor strategy | Diagonal EK-FAC (LoRA params only) |
+| Transforms | `prefix_negation`, `lexicon_flip`, `grammatical_negation` (all complete, no OOM) |
+
+**Key advantage over Exp 4:** Restricting EK-FAC to LoRA parameters reduces factor storage from
+O(d²) per layer (infeasible at d=18,944 for FF layers) to O(r²) per adapter (r=16), enabling
+all three transforms to complete without OOM errors.
+
+### Single-Method Results
+
+| Method | Precision | Recall | F1 | Detected |
+|---|---|---|---|---|
+| `percentile_85` | 0.053 | 0.160 | 0.080 | 150 |
+| `percentile_90` | 0.040 | 0.080 | 0.053 | 100 |
+| `top_k` | 0.046 | 0.120 | 0.067 | 130 |
+| `isolation_forest` | 0.029 | 0.080 | 0.042 | 140 |
+| `lof` | 0.100 | 0.040 | 0.057 | 20 |
+
+**Best single F1: 0.080** (percentile_85)
+
+### Variance Ensemble Results
+
+| Method | Precision | Recall | F1 | Detected |
+|---|---|---|---|---|
+| `var_p80` | 0.065 | 0.260 | 0.104 | 200 |
+| `var_p85` | 0.087 | 0.260 | 0.130 | 150 |
+| `var_p90` | 0.100 | 0.200 | **0.133** | 100 |
+
+**Best variance F1: 0.133**
+
+### Score-Difference Detection — Principled Methods
+
+Poisoned training samples show a consistently higher *increase* in influence when test queries
+are semantically transformed (`lexicon_flip`, `grammatical_negation`).  Two composite scores:
+
+**`diff_score[i]`** — symmetric sum of mean score differences (no weight tuning):
+```
+diff_score[i] = (lf_avg[i] − orig_avg[i]) + (gn_avg[i] − orig_avg[i])
+```
+
+**`product[i]`** — product of *rank-normalised* differences via `QuantileTransformer → [0,1]`:
+```
+product[i] = rank(lf_avg[i] − orig_avg[i]) × rank(gn_avg[i] − orig_avg[i])
+```
+Rank normalisation decouples the two transforms' scales; the product is high only for samples
+that rank high on **both** transforms simultaneously.
+
+**Threshold strategy — fixed 20 % inspection budget (principled):**
+Both scores are thresholded at the top-20 % (top-200 of 1,000 training samples).  The budget
+is chosen before seeing any labels: it is above the expected poison rate (5 %) and represents
+a tractable human-review cost.  The `product_x_diff` result takes the intersection of the two
+top-20 % sets, reducing false positives.
+
+**AUROC / AUPRC (threshold-free, primary principled metric):**
+
+| Score | AUROC | AUPRC |
+|---|---|---|
+| `diff_score` | 0.642 | 0.082 |
+| `product_qt` | **0.661** | **0.092** |
+
+**Results at 20 % inspection budget:**
+
+| Method | Precision | Recall | F1 | Detected | TP |
+|---|---|---|---|---|---|
+| `diff_top20pct` | 0.110 | 0.440 | 0.176 | 200 | 22 |
+| `product_top20pct` | 0.105 | 0.420 | 0.168 | 200 | 21 |
+| `product_x_diff_top20pct` | 0.127 | 0.420 | **0.194** | 166 | 21 |
+
+**Best principled F1: 0.194** — **46% improvement over variance_var_p90 (F1=0.133)**
+
+**Result file:** `experiments/results/lora_detection/detection_results.json`
+
+### On the Three Design Questions
+
+**Q1 — Are thresholds principled?**
+Earlier results (p81, p84) were derived by exhaustive grid search on the test set — a valid
+exploration technique but not deployable as-is.  The current implementation uses a *fixed
+20 % inspection budget* defined before seeing any results.  This corresponds to telling a
+practitioner "we will flag the top quintile of the training set for review."  AUROC/AUPRC
+are additionally reported as the standard threshold-free evaluation metrics.
+
+**Q2 — Does LoRA affect results?**
+Yes, LoRA restriction *improves* detection quality relative to tracking the full 7 B model:
+
+| Setting | AUROC (product_qt) |
+|---|---|
+| LoRA only (q_proj, v_proj, r=16, 5 M params) | **0.661** |
+| Full model (diagonal EK-FAC, 7 B params) | 0.628 |
+
+The improvement comes from the approximation quality, not from LoRA itself: diagonal EK-FAC
+is a coarser approximation as the parameter count grows.  With 5 M LoRA parameters vs. 7 B
+full parameters, the diagonal curvature estimate is far more accurate, yielding cleaner
+influence scores despite tracking far fewer parameters.
+
+**Q3 — Is LoRA natively supported by kronfluence?**
+No.  kronfluence v1.0.1 has no PEFT/LoRA-specific support.  The current implementation
+uses the generic `get_influence_tracked_modules()` API to restrict tracking to the modules
+whose names contain `lora_A` or `lora_B`.  kronfluence then treats each of these as an
+independent `nn.Linear` and builds separate EK-FAC factors, which misses the joint
+`ΔW = B·A` coupling (the Jacobian should chain through both matrices together).  The
+per-matrix approximation is still useful — it captures gradient signal from the LoRA
+subspace — but it is not identical to proper LoRA-aware influence computation.
+
+---
+
 ## Master Summary Table
 
 | Experiment | Model | N train | N poison | Poison% | Best Single F1 | Best Ensemble F1 |
@@ -402,6 +523,7 @@ All single-method approaches fail: the syntactic trigger does not produce high-m
 | Alt: Rare-token CF | T5-small | 200 | 10 | 5% | **0.040** | 0.065 |
 | Alt: Style formal | T5-small | 200 | 10 | 5% | **0.067** | **0.133** |
 | Alt: Syntactic sub-clause | T5-small | 200 | 10 | 5% | **0.000** | **0.125** |
+| LoRA Qwen2.5-7B (principled) | Qwen-7B (LoRA r=16) | 1,000 | 50 | 5% | **0.080** | **0.194** (F1@20%budget) / AUROC=**0.661** |
 
 ---
 

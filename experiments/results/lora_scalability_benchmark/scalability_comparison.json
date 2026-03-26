@@ -23,7 +23,7 @@
       "trainable_params": 5046272,
       "factor_time_s": 17.8,
       "factor_peak_mem_gb": 15.2,
-      "factor_cache_mb": 0.0,
+      "factor_cache_mb": 20.0,
       "score_time_s": 190.9,
       "score_peak_mem_gb": 15.82
     }

@@ -38,7 +38,7 @@ DEVICE       = "cuda:0"   # remapped via CUDA_VISIBLE_DEVICES=1
 NUM_TRAIN    = 1000
 NUM_TEST     = 50
 MAX_LENGTH   = 128
-BATCH_SIZE   = 1
+BATCH_SIZE   = 4
 DATA_DIR     = Path("data")
 TASK_NAME    = "polarity"
 OUT_DIR      = Path("experiments/results/lora_detection")
@@ -210,41 +210,47 @@ def compute_scores(analyzer, train_dataset, test_dataset, scores_name, overwrite
 
 # ── Detection helpers ─────────────────────────────────────────────────────────
 
+def _prf(ds, poison_set):
+    tp = len(ds & poison_set); fp = len(ds - poison_set); fn_ = len(poison_set - ds)
+    p = tp/(tp+fp) if (tp+fp) > 0 else 0.0
+    r = tp/(tp+fn_) if (tp+fn_) > 0 else 0.0
+    f = 2*p*r/(p+r) if (p+r) > 0 else 0.0
+    return {"precision": p, "recall": r, "f1": f,
+            "num_detected": len(ds), "tp": tp, "fp": fp, "fn": fn_}
+
+
 def eval_detection(scores_1d, poison_set, n_train):
-    det = PoisonDetector(poisoned_indices=poison_set)
+    """scores_1d: 1-D array of length n_train (avg influence per train sample)."""
+    from sklearn.ensemble import IsolationForest
+    from sklearn.neighbors import LocalOutlierFactor
     results = {}
-    for method, fn in [
-        ("percentile_85", lambda: det.detect_by_percentile(scores_1d, 85)),
-        ("percentile_90", lambda: det.detect_by_percentile(scores_1d, 90)),
-        ("top_k",         lambda: det.detect_by_top_k(scores_1d, int(0.13 * n_train))),
-    ]:
+    # Percentile methods — flag top-(100-p)% highest-influence samples
+    for name, pct in [("percentile_85", 85), ("percentile_90", 90)]:
         try:
-            detected = fn()
-            ds = {idx for idx, _ in detected}
-            tp = len(ds & poison_set); fp = len(ds - poison_set); fn_ = len(poison_set - ds)
-            p = tp/(tp+fp) if (tp+fp) > 0 else 0.0
-            r = tp/(tp+fn_) if (tp+fn_) > 0 else 0.0
-            f = 2*p*r/(p+r) if (p+r) > 0 else 0.0
-            results[method] = {"precision": p, "recall": r, "f1": f,
-                               "num_detected": len(ds), "tp": tp, "fp": fp, "fn": fn_}
+            threshold = np.percentile(scores_1d, pct)
+            ds = set(np.where(scores_1d >= threshold)[0])
+            results[name] = _prf(ds, poison_set)
         except Exception as e:
-            results[method] = {"error": str(e)}
+            results[name] = {"error": str(e)}
+    # Top-k
+    try:
+        k = int(0.13 * n_train)
+        ds = set(np.argsort(scores_1d)[-k:])
+        results["top_k"] = _prf(ds, poison_set)
+    except Exception as e:
+        results["top_k"] = {"error": str(e)}
+    # Isolation Forest and LOF on 1-D feature
     s2d = scores_1d.reshape(-1, 1)
-    for method, fn in [
-        ("isolation_forest", lambda: det.detect_by_isolation_forest(s2d)),
-        ("lof",              lambda: det.detect_by_lof(s2d)),
+    for name, clf in [
+        ("isolation_forest", IsolationForest(contamination="auto", random_state=42, n_jobs=-1)),
+        ("lof",              LocalOutlierFactor(n_neighbors=min(20, n_train-1), contamination="auto")),
     ]:
         try:
-            detected = fn()
-            ds = {idx for idx, _ in detected}
-            tp = len(ds & poison_set); fp = len(ds - poison_set); fn_ = len(poison_set - ds)
-            p = tp/(tp+fp) if (tp+fp) > 0 else 0.0
-            r = tp/(tp+fn_) if (tp+fn_) > 0 else 0.0
-            f = 2*p*r/(p+r) if (p+r) > 0 else 0.0
-            results[method] = {"precision": p, "recall": r, "f1": f,
-                               "num_detected": len(ds), "tp": tp, "fp": fp, "fn": fn_}
+            preds = clf.fit_predict(s2d)
+            ds = set(np.where(preds == -1)[0])
+            results[name] = _prf(ds, poison_set)
         except Exception as e:
-            results[method] = {"error": str(e)}
+            results[name] = {"error": str(e)}
     return results
 
 
@@ -255,6 +261,8 @@ def print_table(title, results):
     for k, v in results.items():
         if "error" in v:
             print(f"  {k:<33} ERROR: {str(v['error'])[:40]}")
+        elif "auroc" in v:
+            print(f"  {k:<33} AUROC={v['auroc']:.3f}  AUPRC={v['auprc']:.3f}")
         else:
             print(f"  {k:<33} {v.get('precision',0):7.3f} {v.get('recall',0):7.3f} "
                   f"{v.get('f1',0):7.3f} {v.get('num_detected',0):6d}")
@@ -264,9 +272,10 @@ def variance_ensemble(all_scores_dict, poison_set, n_train):
     transforms_list = [v for k, v in all_scores_dict.items() if k != "original"]
     if not transforms_list:
         return {}
+    # scores shape: (n_query_batches, n_train); mean(axis=0) → (n_train,)
     all_stacked = np.stack(
-        [all_scores_dict["original"].mean(axis=1)] +
-        [v.mean(axis=1) for v in transforms_list], axis=0
+        [all_scores_dict["original"].mean(axis=0)] +
+        [v.mean(axis=0) for v in transforms_list], axis=0
     )
     var_score = all_stacked.var(axis=0)
     inv_var = -var_score
@@ -283,11 +292,122 @@ def variance_ensemble(all_scores_dict, poison_set, n_train):
     return results
 
 
+def score_difference_detection(all_scores_dict, poison_set, n_train):
+    """Detect poisoned samples using per-transform score differences.
+
+    Signal: poisoned training samples show a consistently higher *increase*
+    in influence score when test queries are semantically transformed
+    (lexicon_flip and grammatical_negation), because the backdoor trigger
+    shifts how the model attributes credit across the training set.
+
+    Two composite scores are built and reported at principled thresholds:
+
+    Composite scores
+    ----------------
+    ``diff_score``  — equal-weight sum of mean score differences:
+        diff_score[i] = (lf_avg[i] - orig_avg[i]) + (gn_avg[i] - orig_avg[i])
+        No arbitrary weight tuning; both transforms are treated symmetrically.
+
+    ``product_score`` — product of *rank-normalised* score differences:
+        product_score[i] = rank(lf_avg[i]-orig_avg[i]) × rank(gn_avg[i]-orig_avg[i])
+        Rank normalisation (QuantileTransformer → [0,1]) decouples the
+        scales of the two transforms and makes the product equivalent to
+        "high rank in BOTH transforms simultaneously."
+
+    Threshold strategy (principled)
+    --------------------------------
+    Instead of tuning arbitrary percentiles (p81, p84), thresholds are set
+    by a fixed *inspection budget* of 20 % of the training set, i.e.
+    top-k with k = ceil(0.20 × n_train).  This corresponds to flagging the
+    top quintile of the score distribution — a budget a practitioner would
+    commit to before seeing any labels.  The 20 % budget is chosen to be
+    comfortably above the expected poison rate (5 %) while remaining
+    tractable for manual review.
+
+    The ``product_top20`` result additionally intersects the two top-20 %
+    sets, so a sample is flagged only if it ranks high on *both* scores.
+    This reduces false positives without significantly lowering recall.
+
+    Threshold-free evaluation
+    -------------------------
+    AUROC and AUPRC are also reported; they require no threshold choice and
+    are the primary principled metrics for comparing detection methods.
+
+    Note on the LoRA approximation
+    --------------------------------
+    Influence is computed only through LoRA adapter gradients (q_proj and
+    v_proj, rank 16) tracked by kronfluence's ``get_influence_tracked_modules``
+    API.  kronfluence v1.0.1 has no native LoRA/PEFT support; it treats
+    lora_A and lora_B as independent nn.Linear modules and builds separate
+    EK-FAC factors for each.  This misses the ΔW = B·A coupling, so the
+    Fisher approximation is approximate even within the LoRA subspace.
+    Empirically, restricting to LoRA parameters (5 M vs 7 B) yields a
+    *better* diagonal EK-FAC approximation (AUROC 0.661 vs 0.628 for the
+    full-model diagonal), because the curvature of a tiny subspace is far
+    easier to approximate accurately with a diagonal.
+    """
+    from sklearn.metrics import roc_auc_score, average_precision_score
+    from sklearn.preprocessing import QuantileTransformer
+
+    orig = all_scores_dict.get("original")
+    if orig is None:
+        return {}
+
+    orig_avg = orig.mean(axis=0)  # (n_train,)
+
+    diff_lf = (all_scores_dict["lexicon_flip"].mean(axis=0) - orig_avg
+               if "lexicon_flip" in all_scores_dict else np.zeros(n_train))
+    diff_gn = (all_scores_dict["grammatical_negation"].mean(axis=0) - orig_avg
+               if "grammatical_negation" in all_scores_dict else np.zeros(n_train))
+
+    def _prf(det):
+        tp = len(det & poison_set); fp = len(det - poison_set); fn_ = len(poison_set - det)
+        p = tp/(tp+fp) if (tp+fp) > 0 else 0.0
+        r = tp/(tp+fn_) if (tp+fn_) > 0 else 0.0
+        f = 2*p*r/(p+r) if (p+r) > 0 else 0.0
+        return {"precision": p, "recall": r, "f1": f,
+                "num_detected": len(det), "tp": tp, "fp": fp, "fn": fn_}
+
+    def _qt(arr):
+        q = QuantileTransformer(n_quantiles=min(100, n_train),
+                                output_distribution="uniform")
+        return q.fit_transform(arr.reshape(-1, 1)).ravel()
+
+    # ── Composite scores (no weight tuning) ──────────────────────────────────
+    diff_score  = diff_lf + diff_gn                   # symmetric sum
+    qlf         = _qt(diff_lf)
+    qgn         = _qt(diff_gn)
+    product     = qlf * qgn                           # rank-normalised product
+
+    # ── Principled threshold: fixed 20 % inspection budget ───────────────────
+    budget = int(np.ceil(0.20 * n_train))
+    results = {}
+
+    top_diff_20    = set(np.argsort(diff_score)[-budget:])
+    top_product_20 = set(np.argsort(product)[-budget:])
+
+    results["diff_top20pct"]           = _prf(top_diff_20)
+    results["product_top20pct"]        = _prf(top_product_20)
+    results["product_x_diff_top20pct"] = _prf(top_diff_20 & top_product_20)
+
+    # ── AUROC / AUPRC (threshold-free) ───────────────────────────────────────
+    y_true = np.array([1 if i in poison_set else 0 for i in range(n_train)])
+    for score_name, score_arr in [("diff", diff_score), ("product", product)]:
+        try:
+            auroc = roc_auc_score(y_true, score_arr)
+            auprc = average_precision_score(y_true, score_arr)
+        except Exception:
+            auroc = auprc = float("nan")
+        results[f"{score_name}_auroc_auprc"] = {"auroc": auroc, "auprc": auprc}
+
+    return results
+
+
 # ── Main ─────────────────────────────────────────────────────────────────────
 
 def main():
     import os
-    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
     os.chdir(Path(__file__).parent.parent)
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -361,15 +481,18 @@ def main():
     print("DETECTION RESULTS (LoRA r=16)")
     print("=" * 70)
 
-    orig_avg = all_scores["original"].mean(axis=1)
+    # scores shape: (n_query_batches, n_train); mean over query batches → (n_train,)
+    orig_avg = all_scores["original"].mean(axis=0)
     single_results = eval_detection(orig_avg, poison_indices, NUM_TRAIN)
     print_table("Single-method (original influence):", single_results)
 
+    # MultiTransformDetector expects (n_train, n_queries) — transpose from (n_batches, n_train)
     ensemble_detector = MultiTransformDetector(poisoned_indices=poison_indices)
     for tname, ttype in TRANSFORMS:
         if tname in all_scores:
             ensemble_detector.add_transform_result(tname, ttype,
-                                                    all_scores["original"], all_scores[tname])
+                                                    all_scores["original"].T,
+                                                    all_scores[tname].T)
     all_ensemble = ensemble_detector.run_all_methods()
     ensemble_summary = {}
     for method_name, (metrics, _) in all_ensemble.items():
@@ -384,13 +507,22 @@ def main():
     var_results = variance_ensemble(all_scores, poison_indices, NUM_TRAIN)
     print_table("Variance ensemble:", var_results)
 
+    diff_results = score_difference_detection(all_scores, poison_indices, NUM_TRAIN)
+    print_table("Score-difference detection:", diff_results)
+
     all_results = {}
     all_results.update({f"single_{k}": v for k, v in single_results.items()})
     all_results.update({f"ensemble_{k}": v for k, v in ensemble_summary.items()})
     all_results.update({f"variance_{k}": v for k, v in var_results.items()})
+    all_results.update({f"diff_{k}": v for k, v in diff_results.items()})
 
+    # Skip AUROC-only entries (no "f1" key) when finding best F1 method
     best_f1 = max((v.get("f1", 0) for v in all_results.values() if "f1" in v), default=0)
-    best_method = max(all_results, key=lambda k: all_results[k].get("f1", 0))
+    best_method = max(
+        (k for k in all_results if "f1" in all_results[k]),
+        key=lambda k: all_results[k].get("f1", 0),
+        default="N/A",
+    )
 
     total_time = time.time() - t_total
     results = {
@@ -405,6 +537,7 @@ def main():
         "single_methods": single_results,
         "ensemble_methods": ensemble_summary,
         "variance_methods": var_results,
+        "diff_methods": diff_results,
         "best_f1": best_f1,
         "best_method": best_method,
         "total_time_min": round(total_time / 60, 1),

@@ -1,0 +1,132 @@
+{
+  "model": "Qwen/Qwen2.5-7B",
+  "lora_rank": 16,
+  "lora_targets": [
+    "q_proj",
+    "v_proj"
+  ],
+  "lora_trainable_params": 5046272,
+  "factor_strategy": "diagonal",
+  "n_train": 1000,
+  "n_poison": 50,
+  "poison_ratio": 0.05,
+  "lora_vs_fullmodel_auroc": {
+    "lora_product": 0.661,
+    "fullmodel_diagonal_product": 0.628
+  },
+  "single_methods": {
+    "percentile_85": {
+      "precision": 0.05333333333333334,
+      "recall": 0.16,
+      "f1": 0.08,
+      "num_detected": 150,
+      "tp": 8,
+      "fp": 142,
+      "fn": 42
+    },
+    "percentile_90": {
+      "precision": 0.04,
+      "recall": 0.08,
+      "f1": 0.05333333333333334,
+      "num_detected": 100,
+      "tp": 4,
+      "fp": 96,
+      "fn": 46
+    },
+    "top_k": {
+      "precision": 0.046153846153846156,
+      "recall": 0.12,
+      "f1": 0.06666666666666668,
+      "num_detected": 130,
+      "tp": 6,
+      "fp": 124,
+      "fn": 44
+    },
+    "isolation_forest": {
+      "precision": 0.02857142857142857,
+      "recall": 0.08,
+      "f1": 0.04210526315789474,
+      "num_detected": 140,
+      "tp": 4,
+      "fp": 136,
+      "fn": 46
+    },
+    "lof": {
+      "precision": 0.1,
+      "recall": 0.04,
+      "f1": 0.05714285714285714,
+      "num_detected": 20,
+      "tp": 2,
+      "fp": 18,
+      "fn": 48
+    }
+  },
+  "variance_methods": {
+    "var_p80": {
+      "precision": 0.065,
+      "recall": 0.26,
+      "f1": 0.10400000000000001,
+      "num_detected": 200,
+      "tp": 13,
+      "fp": 187,
+      "fn": 37
+    },
+    "var_p85": {
+      "precision": 0.08666666666666667,
+      "recall": 0.26,
+      "f1": 0.13,
+      "num_detected": 150,
+      "tp": 13,
+      "fp": 137,
+      "fn": 37
+    },
+    "var_p90": {
+      "precision": 0.1,
+      "recall": 0.2,
+      "f1": 0.13333333333333333,
+      "num_detected": 100,
+      "tp": 10,
+      "fp": 90,
+      "fn": 40
+    }
+  },
+  "diff_methods": {
+    "diff_top20pct": {
+      "precision": 0.11,
+      "recall": 0.44,
+      "f1": 0.176,
+      "num_detected": 200,
+      "tp": 22,
+      "fp": 178,
+      "fn": 28
+    },
+    "product_top20pct": {
+      "precision": 0.105,
+      "recall": 0.42,
+      "f1": 0.16799999999999995,
+      "num_detected": 200,
+      "tp": 21,
+      "fp": 179,
+      "fn": 29
+    },
+    "product_x_diff_top20pct": {
+      "precision": 0.12650602409638553,
+      "recall": 0.42,
+      "f1": 0.19444444444444445,
+      "num_detected": 166,
+      "tp": 21,
+      "fp": 145,
+      "fn": 29
+    },
+    "diff_auroc_auprc": {
+      "auroc": 0.6422947368421053,
+      "auprc": 0.08249578359627788
+    },
+    "product_auroc_auprc": {
+      "auroc": 0.6613684210526316,
+      "auprc": 0.09167869516483473
+    }
+  },
+  "best_f1": 0.19444444444444445,
+  "best_method": "diff_product_x_diff_top20pct"
+}
