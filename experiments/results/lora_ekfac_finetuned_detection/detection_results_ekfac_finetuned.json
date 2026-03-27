@@ -1,0 +1,161 @@
+{
+  "model": "Qwen/Qwen2.5-7B",
+  "factor_strategy": "ekfac",
+  "finetuned": true,
+  "finetune_epochs": 3,
+  "finetune_lr": 0.0002,
+  "lora_rank": 16,
+  "lora_targets": [
+    "q_proj",
+    "v_proj"
+  ],
+  "n_train": 1000,
+  "n_poison": 50,
+  "poison_ratio": 0.05,
+  "single_methods": {
+    "percentile_85": {
+      "precision": 0.02666666666666667,
+      "recall": 0.08,
+      "f1": 0.04,
+      "num_detected": 150,
+      "tp": 4,
+      "fp": 146,
+      "fn": 46
+    },
+    "percentile_90": {
+      "precision": 0.03,
+      "recall": 0.06,
+      "f1": 0.04,
+      "num_detected": 100,
+      "tp": 3,
+      "fp": 97,
+      "fn": 47
+    },
+    "top_k": {
+      "precision": 0.03076923076923077,
+      "recall": 0.08,
+      "f1": 0.044444444444444446,
+      "num_detected": 130,
+      "tp": 4,
+      "fp": 126,
+      "fn": 46
+    },
+    "isolation_forest": {
+      "precision": 0.038461538461538464,
+      "recall": 0.1,
+      "f1": 0.05555555555555555,
+      "num_detected": 130,
+      "tp": 5,
+      "fp": 125,
+      "fn": 45
+    },
+    "lof": {
+      "precision": 0.041666666666666664,
+      "recall": 0.02,
+      "f1": 0.02702702702702703,
+      "num_detected": 24,
+      "tp": 1,
+      "fp": 23,
+      "fn": 49
+    },
+    "auroc_auprc": {
+      "auroc": 0.43861052631578945,
+      "auprc": 0.046195623176458346
+    }
+  },
+  "ensemble_methods": {
+    "ensemble_balanced": {
+      "precision": 0.04,
+      "recall": 0.08,
+      "f1": 0.05333333333333334,
+      "num_detected": 100
+    },
+    "ensemble_resistance": {
+      "precision": 0.03,
+      "recall": 0.06,
+      "f1": 0.04,
+      "num_detected": 100
+    },
+    "consistency_threshold": {
+      "precision": 0.04225352112676056,
+      "recall": 0.12,
+      "f1": 0.0625,
+      "num_detected": 142
+    },
+    "cross_type_agreement": {
+      "precision": 0.05263157894736842,
+      "recall": 0.04,
+      "f1": 0.04545454545454545,
+      "num_detected": 38
+    }
+  },
+  "variance_methods": {
+    "var_p80": {
+      "precision": 0.06,
+      "recall": 0.24,
+      "f1": 0.096,
+      "num_detected": 200,
+      "tp": 12,
+      "fp": 188,
+      "fn": 38
+    },
+    "var_p85": {
+      "precision": 0.06,
+      "recall": 0.18,
+      "f1": 0.09,
+      "num_detected": 150,
+      "tp": 9,
+      "fp": 141,
+      "fn": 41
+    },
+    "var_p90": {
+      "precision": 0.06,
+      "recall": 0.12,
+      "f1": 0.08,
+      "num_detected": 100,
+      "tp": 6,
+      "fp": 94,
+      "fn": 44
+    }
+  },
+  "diff_methods": {
+    "diff_top20pct": {
+      "precision": 0.05,
+      "recall": 0.2,
+      "f1": 0.08000000000000002,
+      "num_detected": 200,
+      "tp": 10,
+      "fp": 190,
+      "fn": 40
+    },
+    "product_top20pct": {
+      "precision": 0.065,
+      "recall": 0.26,
+      "f1": 0.10400000000000001,
+      "num_detected": 200,
+      "tp": 13,
+      "fp": 187,
+      "fn": 37
+    },
+    "product_x_diff_top20pct": {
+      "precision": 0.05921052631578947,
+      "recall": 0.18,
+      "f1": 0.0891089108910891,
+      "num_detected": 152,
+      "tp": 9,
+      "fp": 143,
+      "fn": 41
+    },
+    "diff_auroc_auprc": {
+      "auroc": 0.5216842105263158,
+      "auprc": 0.05772888532014385
+    },
+    "product_auroc_auprc": {
+      "auroc": 0.5454736842105263,
+      "auprc": 0.06348598738818059
+    }
+  },
+  "best_f1": 0.10400000000000001,
+  "best_method": "diff_product_top20pct",
+  "total_time_min": 204.3
+}

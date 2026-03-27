@@ -10,10 +10,6 @@
   "n_train": 1000,
   "n_poison": 50,
   "poison_ratio": 0.05,
-  "lora_vs_fullmodel_auroc": {
-    "lora_product": 0.661,
-    "fullmodel_diagonal_product": 0.628
-  },
   "single_methods": {
     "percentile_85": {
       "precision": 0.05333333333333334,
@@ -59,6 +55,32 @@
       "tp": 2,
       "fp": 18,
       "fn": 48
+    }
+  },
+  "ensemble_methods": {
+    "ensemble_balanced": {
+      "precision": 0.07,
+      "recall": 0.14,
+      "f1": 0.09333333333333334,
+      "num_detected": 100
+    },
+    "ensemble_resistance": {
+      "precision": 0.05,
+      "recall": 0.1,
+      "f1": 0.06666666666666667,
+      "num_detected": 100
+    },
+    "consistency_threshold": {
+      "precision": 1.0,
+      "recall": 0.06,
+      "f1": 0.11320754716981131,
+      "num_detected": 3
+    },
+    "cross_type_agreement": {
+      "precision": 0.05555555555555555,
+      "recall": 0.04,
+      "f1": 0.046511627906976744,
+      "num_detected": 36
     }
   },
   "variance_methods": {
@@ -120,7 +142,7 @@
     },
     "diff_auroc_auprc": {
       "auroc": 0.6422947368421053,
-      "auprc": 0.08249578359627788
+      "auprc": 0.08249578359627789
     },
     "product_auroc_auprc": {
       "auroc": 0.6613684210526316,
@@ -128,5 +150,6 @@
     }
   },
   "best_f1": 0.19444444444444445,
-  "best_method": "diff_product_x_diff_top20pct"
+  "best_method": "diff_product_x_diff_top20pct",
+  "total_time_min": 1.6
 }

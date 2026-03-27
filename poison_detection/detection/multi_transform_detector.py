@@ -52,6 +52,12 @@ class MultiTransformDetector:
             original_scores: Original influence scores (n_train, n_test)
             transformed_scores: Transformed influence scores (n_train, n_test)
         """
+        # Ensure numpy arrays (scores may be torch.Tensor or np.ndarray)
+        if hasattr(original_scores, 'numpy'):
+            original_scores = original_scores.cpu().numpy()
+        if hasattr(transformed_scores, 'numpy'):
+            transformed_scores = transformed_scores.cpu().numpy()
+
         # Compute average scores across test samples
         orig_avg = original_scores.mean(axis=1)
         trans_avg = transformed_scores.mean(axis=1)
