@@ -167,7 +167,7 @@ def load_model():
     t0    = time.time()
     model = AutoModelForCausalLM.from_pretrained(
         MODEL_NAME,
-        dtype=torch.float16,
+        torch_dtype=torch.float16,
         device_map={"": DEVICE},
         low_cpu_mem_usage=True,
     )
