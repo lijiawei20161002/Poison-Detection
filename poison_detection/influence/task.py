@@ -103,8 +103,12 @@ class ClassificationTask(Task):
         """
         Compute measurement loss for influence computation.
 
-        This computes a classification loss based on the label space,
-        comparing model predictions across candidate labels.
+        Uses the same causal LM cross-entropy loss as compute_train_loss so
+        that both sides of the influence formula
+            I(z_train, z_query) = ∇L(z_query)ᵀ H⁻¹ ∇L(z_train)
+        are gradients of the same function.  The previous BCE-over-candidates
+        implementation used a different loss surface, which made the inner
+        product theoretically unsound.
 
         Args:
             batch: Tuple of (inputs, labels, label_spaces)
@@ -113,121 +117,7 @@ class ClassificationTask(Task):
         Returns:
             Scalar measurement loss
         """
-        inputs, labels, label_spaces = batch
-
-        inputs = inputs.long().to(self.device)
-        labels = labels.long().to(self.device)
-        label_spaces = label_spaces.to(self.device)
-
-        log_probs = []
-
-        # Compute log probabilities for each sample
-        for i in range(inputs.size(0)):
-            input_ids = inputs[i].unsqueeze(0)
-            current_label_space = label_spaces[i]
-
-            candidate_losses = []
-            for candidate in current_label_space:
-                # Compute loss for each candidate label
-                # For causal LM: concatenate input and candidate sequences
-                combined_input_ids = torch.cat([input_ids, candidate.unsqueeze(0)], dim=1)
-
-                # Create labels tensor: -100 for input portion, actual labels for candidate portion
-                combined_labels = torch.cat([
-                    torch.full_like(input_ids, -100),  # Mask input tokens
-                    candidate.unsqueeze(0)  # Keep candidate tokens
-                ], dim=1)
-
-                outputs = model(
-                    input_ids=combined_input_ids,
-                    labels=combined_labels
-                )
-
-                # Use negative loss as log probability
-                log_prob = -outputs.loss
-                candidate_losses.append(log_prob)
-
-            log_probs.append(torch.stack(candidate_losses, dim=0))
-
-        # Stack log probs: [batch_size, num_candidates]
-        log_probs = torch.stack(log_probs)
-
-        # Find true label indices in label space
-        true_label_indices = []
-        for i in range(labels.size(0)):
-            true_label = labels[i]
-            current_label_space = label_spaces[i]
-
-            # Find which candidate in label_space matches the true label
-            # Compare the full label sequence with each candidate
-            match_found = False
-            for candidate_idx in range(current_label_space.size(0)):
-                candidate = current_label_space[candidate_idx]
-                # Compare sequences
-                if torch.equal(true_label, candidate):
-                    true_label_indices.append(candidate_idx)
-                    match_found = True
-                    break
-
-            # If no exact match found, try to find first matching non-padding token
-            if not match_found:
-                # Get first non-zero token from true label (assumes 0 is padding)
-                true_nonzero = true_label[true_label != 0]
-                if len(true_nonzero) > 0:
-                    true_first_token = true_nonzero[0]
-                else:
-                    true_first_token = true_label[0]
-
-                for candidate_idx in range(current_label_space.size(0)):
-                    candidate = current_label_space[candidate_idx]
-                    # Get first non-zero token from candidate
-                    cand_nonzero = candidate[candidate != 0]
-                    if len(cand_nonzero) > 0:
-                        cand_first_token = cand_nonzero[0]
-                    else:
-                        cand_first_token = candidate[0]
-
-                    if true_first_token == cand_first_token:
-                        true_label_indices.append(candidate_idx)
-                        match_found = True
-                        break
-
-            # If still no match, use first candidate as fallback
-            if not match_found:
-                true_label_indices.append(0)
-
-        true_label_indices = torch.tensor(
-            true_label_indices,
-            dtype=torch.long
-        ).to(self.device)
-
-        # Convert to probabilities with softmax
-        probs = torch.softmax(log_probs, dim=1)
-
-        # Validate indices are within bounds
-        num_candidates = probs.size(1)
-        true_label_indices = torch.clamp(true_label_indices, 0, num_candidates - 1)
-
-        # Create target tensor (one-hot encoding)
-        target_tensor = torch.zeros_like(probs)
-        target_tensor[range(target_tensor.size(0)), true_label_indices] = 1.0
-
-        # Clamp probabilities to prevent log(0) issues
-        probs = torch.clamp(probs, min=1e-7, max=1.0 - 1e-7)
-
-        # Compute Binary Cross-Entropy loss
-        loss_fn = torch.nn.BCELoss()
-        loss = loss_fn(probs, target_tensor)
-
-        # Check for NaN/inf and replace with a safe value
-        if torch.isnan(loss) or torch.isinf(loss):
-            logger.warning("NaN/inf detected in measurement loss, replacing with 1.0")
-            loss = torch.tensor(1.0, device=loss.device, dtype=loss.dtype)
-
-        # Clamp loss to reasonable range
-        loss = torch.clamp(loss, min=1e-7, max=100.0)
-
-        return loss
+        return self.compute_train_loss(batch, model, sample=False)
 
 
 class SimpleGenerationTask(Task):
