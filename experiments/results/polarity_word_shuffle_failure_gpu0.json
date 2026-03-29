@@ -1,6 +1,0 @@
-{
-  "word_shuffle_failure": {
-    "success": false,
-    "error": "axis 1 is out of bounds for array of dimension 1"
-  }
-}

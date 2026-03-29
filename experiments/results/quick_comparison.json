@@ -1,6 +1,0 @@
-{
-  "combined_flip_negation": {
-    "success": false,
-    "error": "Error while deserializing header: incomplete metadata, file not fully covered"
-  }
-}
