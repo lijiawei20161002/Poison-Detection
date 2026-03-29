@@ -17,8 +17,8 @@ from typing import List, Optional
 
 import numpy as np
 import torch
-from torch.utils.data import DataLoader
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from torch.utils.data import Dataset, DataLoader, DataLoader as TorchDataLoader
+from transformers import AutoModelForCausalLM, AutoTokenizer, get_linear_schedule_with_warmup
 from peft import LoraConfig, get_peft_model, TaskType
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -42,12 +42,23 @@ BATCH_SIZE   = 4
 DATA_DIR     = Path("data")
 TASK_NAME    = "polarity"
 OUT_DIR      = Path("experiments/results/lora_detection")
-FACTORS_NAME = "factors_lora"
-ANALYSIS_NAME = "qwen7b_lora"
+# New artifact names so cached random-LoRA results are not reused
+FACTORS_NAME  = "factors_lora_ft_clean"
+ANALYSIS_NAME = "qwen7b_lora_ft_clean"
+LORA_CKPT     = OUT_DIR / "lora_finetuned_clean.pt"
 
 LORA_RANK    = 16
 LORA_ALPHA   = 32
 LORA_TARGETS = ["q_proj", "v_proj"]
+
+# Fine-tuning on clean test set
+FINETUNE_EPOCHS     = 5    # small dataset (200 samples) needs more passes
+FINETUNE_LR         = 1e-4 # conservative: don't overfit
+FINETUNE_BATCH_SIZE = 4
+
+# Larger batch for scoring only — forward passes through frozen LoRA adapter
+# are cheaper than fine-tuning backward passes.
+SCORE_BATCH_SIZE = 4
 
 TRANSFORMS = [
     ("prefix_negation",      "lexicon"),
@@ -65,6 +76,119 @@ class LoRAClassificationTask(ClassificationTask):
 
     def get_influence_tracked_modules(self) -> Optional[List[str]]:
         return self._lora_modules
+
+
+# ── Fine-tuning on clean test set ─────────────────────────────────────────────
+
+class FineTuneDataset(Dataset):
+    """Causal LM dataset with loss masked to answer tokens only."""
+
+    def __init__(self, samples, tokenizer, max_length=136):
+        self.items = []
+        for s in samples:
+            prompt = f"Classify sentiment.\nText: {s.input_text}\nAnswer:"
+            answer = f" {s.output_text}"
+            prompt_ids = tokenizer(prompt, add_special_tokens=True)["input_ids"]
+            full_ids = tokenizer(
+                prompt + answer,
+                max_length=max_length,
+                truncation=True,
+                padding="max_length",
+                add_special_tokens=True,
+            )["input_ids"]
+            input_ids = torch.tensor(full_ids, dtype=torch.long)
+            attention_mask = (input_ids != tokenizer.pad_token_id).long()
+            labels = input_ids.clone()
+            labels[: len(prompt_ids)] = -100
+            labels[attention_mask == 0] = -100
+            self.items.append(
+                {"input_ids": input_ids, "attention_mask": attention_mask, "labels": labels}
+            )
+
+    def __len__(self):
+        return len(self.items)
+
+    def __getitem__(self, idx):
+        return self.items[idx]
+
+
+def finetune_lora_on_clean(model, tokenizer, clean_samples, overwrite=False):
+    """Fine-tune LoRA on the *clean* test set so influence is computed at a
+    meaningful minimum, not at random initialization.
+
+    Using clean data (not the poisoned training set) prevents the model from
+    adapting to the backdoor trigger, keeping poisoned training samples
+    maximally anomalous in gradient space.
+    """
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    if LORA_CKPT.exists() and not overwrite:
+        print(f"  Loading cached clean fine-tuned LoRA from {LORA_CKPT} ...")
+        state = torch.load(LORA_CKPT, map_location=DEVICE)
+        missing, unexpected = model.load_state_dict(state, strict=False)
+        print(f"  Loaded ({len(state)} tensors, missing={len(missing)}, "
+              f"unexpected={len(unexpected)})")
+        return model
+
+    print(f"  Fine-tuning LoRA on {len(clean_samples)} clean samples: "
+          f"{FINETUNE_EPOCHS} epochs, lr={FINETUNE_LR} ...")
+
+    # Cast LoRA params to float32 for stable gradients
+    for name, param in model.named_parameters():
+        if param.requires_grad:
+            param.data = param.data.float()
+
+    model.train()
+    optimizer = torch.optim.AdamW(
+        [p for p in model.parameters() if p.requires_grad],
+        lr=FINETUNE_LR,
+        weight_decay=0.01,
+    )
+    ft_ds = FineTuneDataset(clean_samples, tokenizer, max_length=MAX_LENGTH + 8)
+    loader = TorchDataLoader(ft_ds, batch_size=FINETUNE_BATCH_SIZE, shuffle=True)
+    total_steps = FINETUNE_EPOCHS * len(loader)
+    scheduler = get_linear_schedule_with_warmup(
+        optimizer,
+        num_warmup_steps=max(1, total_steps // 10),
+        num_training_steps=total_steps,
+    )
+    scaler = torch.cuda.amp.GradScaler()
+
+    t0 = time.time()
+    for epoch in range(FINETUNE_EPOCHS):
+        epoch_loss = 0.0
+        for batch in loader:
+            input_ids = batch["input_ids"].to(DEVICE)
+            attention_mask = batch["attention_mask"].to(DEVICE)
+            labels = batch["labels"].to(DEVICE)
+            with torch.cuda.amp.autocast():
+                outputs = model(
+                    input_ids=input_ids, attention_mask=attention_mask, labels=labels
+                )
+            loss = outputs.loss
+            scaler.scale(loss).backward()
+            scaler.unscale_(optimizer)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            scaler.step(optimizer)
+            scaler.update()
+            optimizer.zero_grad()
+            scheduler.step()
+            epoch_loss += loss.item()
+        avg = epoch_loss / len(loader)
+        print(f"  Epoch {epoch+1}/{FINETUNE_EPOCHS}: avg_loss={avg:.4f}  "
+              f"[{time.time()-t0:.0f}s elapsed]")
+
+    model.eval()
+
+    # Cast LoRA params back to float16 to match frozen base model dtype
+    for name, param in model.named_parameters():
+        if param.requires_grad:
+            param.data = param.data.half()
+
+    lora_state = {k: v for k, v in model.state_dict().items() if "lora_" in k}
+    torch.save(lora_state, LORA_CKPT)
+    print(f"  Saved → {LORA_CKPT} ({len(lora_state)} tensors, "
+          f"{sum(v.numel() for v in lora_state.values())/1e6:.1f}M params)")
+    return model
 
 
 # ── Data helpers ──────────────────────────────────────────────────────────────
@@ -178,13 +302,13 @@ def compute_factors(analyzer, train_dataset, overwrite=False):
     print(f"  Factors done in {elapsed:.1f}s | Cache: {cache_mb:.1f} MB")
 
 
-def compute_scores(analyzer, train_dataset, test_dataset, scores_name, overwrite=False):
-    score_path = OUT_DIR / ANALYSIS_NAME / scores_name
-    if score_path.exists() and not overwrite:
-        meta = score_path / "pairwise_scores_metadata.json"
-        if meta.exists():
-            print(f"  Loading cached {scores_name}...")
-            return analyzer.load_pairwise_scores(scores_name=scores_name)["all_modules"]
+def compute_scores(analyzer, train_dataset, test_dataset, scores_name):
+    """Compute pairwise influence scores, always overwriting kronfluence cache.
+
+    Caching is handled at the .npy level (in the callers), so we tell
+    kronfluence to overwrite any existing (possibly partial) output directory.
+    This avoids stale-argument errors from interrupted prior runs.
+    """
     t0 = time.time()
     score_args = ScoreArguments(
         score_dtype=torch.float32,
@@ -198,10 +322,10 @@ def compute_scores(analyzer, train_dataset, test_dataset, scores_name, overwrite
         factors_name=FACTORS_NAME,
         query_dataset=test_dataset,
         train_dataset=train_dataset,
-        per_device_query_batch_size=BATCH_SIZE,
-        per_device_train_batch_size=BATCH_SIZE,
+        per_device_query_batch_size=SCORE_BATCH_SIZE,
+        per_device_train_batch_size=SCORE_BATCH_SIZE,
         score_args=score_args,
-        overwrite_output_dir=overwrite,
+        overwrite_output_dir=True,
     )
     scores = analyzer.load_pairwise_scores(scores_name=scores_name)["all_modules"]
     print(f"  Done in {time.time()-t0:.1f}s | Shape: {scores.shape}")
@@ -232,13 +356,23 @@ def eval_detection(scores_1d, poison_set, n_train):
             results[name] = _prf(ds, poison_set)
         except Exception as e:
             results[name] = {"error": str(e)}
-    # Top-k
+    # Top-k HIGHEST influence
     try:
         k = int(0.13 * n_train)
         ds = set(np.argsort(scores_1d)[-k:])
         results["top_k"] = _prf(ds, poison_set)
     except Exception as e:
         results["top_k"] = {"error": str(e)}
+    # Bottom-k LOWEST influence: poisoned samples trained with flipped labels
+    # may exert negative/anomalously-low influence on clean test queries.
+    for name, k in [("bottom_k_10pct", int(0.10 * n_train)),
+                    ("bottom_k_15pct", int(0.15 * n_train)),
+                    ("bottom_k_20pct", int(0.20 * n_train))]:
+        try:
+            ds = set(np.argsort(scores_1d)[:k])
+            results[name] = _prf(ds, poison_set)
+        except Exception as e:
+            results[name] = {"error": str(e)}
     # Isolation Forest and LOF on 1-D feature
     s2d = scores_1d.reshape(-1, 1)
     for name, clf in [
@@ -269,15 +403,26 @@ def print_table(title, results):
 
 
 def variance_ensemble(all_scores_dict, poison_set, n_train):
+    """Flag training samples with lowest cross-transform variance.
+
+    Empirically, poisoned samples (CF-prefix trigger, fine-tuned LoRA) show
+    LOWER variance across semantic transforms than clean samples.  The clean
+    samples sit close to the decision boundary and are highly sensitive to
+    query perturbations, producing high cross-transform variance.  Poisoned
+    samples have anomalously consistent (low) influence because their trigger
+    signal dominates the gradient and doesn't change with query phrasing.
+    We therefore flag the BOTTOM-variance samples (lowest var = most anomalous).
+    """
     transforms_list = [v for k, v in all_scores_dict.items() if k != "original"]
     if not transforms_list:
         return {}
-    # scores shape: (n_query_batches, n_train); mean(axis=0) → (n_train,)
+    # scores shape: (n_test, n_train); mean(axis=0) → (n_train,)
     all_stacked = np.stack(
         [all_scores_dict["original"].mean(axis=0)] +
         [v.mean(axis=0) for v in transforms_list], axis=0
     )
     var_score = all_stacked.var(axis=0)
+    # Flag the (100-pct)% LOWEST-variance samples
     inv_var = -var_score
     results = {}
     for name, pct in [("var_p80", 80), ("var_p85", 85), ("var_p90", 90)]:
@@ -359,6 +504,8 @@ def score_difference_detection(all_scores_dict, poison_set, n_train):
                if "lexicon_flip" in all_scores_dict else np.zeros(n_train))
     diff_gn = (all_scores_dict["grammatical_negation"].mean(axis=0) - orig_avg
                if "grammatical_negation" in all_scores_dict else np.zeros(n_train))
+    diff_pn = (all_scores_dict["prefix_negation"].mean(axis=0) - orig_avg
+               if "prefix_negation" in all_scores_dict else np.zeros(n_train))
 
     def _prf(det):
         tp = len(det & poison_set); fp = len(det - poison_set); fn_ = len(poison_set - det)
@@ -373,26 +520,53 @@ def score_difference_detection(all_scores_dict, poison_set, n_train):
                                 output_distribution="uniform")
         return q.fit_transform(arr.reshape(-1, 1)).ravel()
 
-    # ── Composite scores (no weight tuning) ──────────────────────────────────
-    diff_score  = diff_lf + diff_gn                   # symmetric sum
-    qlf         = _qt(diff_lf)
-    qgn         = _qt(diff_gn)
-    product     = qlf * qgn                           # rank-normalised product
+    # ── Composite scores ──────────────────────────────────────────────────────
+    # 2-transform sum (lf + gn): baseline from prior run
+    diff_score_2  = diff_lf + diff_gn
+    # 3-transform sum (all transforms): more signal, less noise
+    diff_score_3  = diff_lf + diff_gn + diff_pn
+
+    qlf  = _qt(diff_lf)
+    qgn  = _qt(diff_gn)
+    qpn  = _qt(diff_pn)
+    # 2-transform product (rank-normalised)
+    product_2 = qlf * qgn
+    # 3-transform product: high only if sample ranks high on ALL transforms
+    product_3 = qlf * qgn * qpn
 
     # ── Principled threshold: fixed 20 % inspection budget ───────────────────
     budget = int(np.ceil(0.20 * n_train))
     results = {}
 
-    top_diff_20    = set(np.argsort(diff_score)[-budget:])
-    top_product_20 = set(np.argsort(product)[-budget:])
+    top_diff2_20    = set(np.argsort(diff_score_2)[-budget:])
+    top_diff3_20    = set(np.argsort(diff_score_3)[-budget:])
+    top_prod2_20    = set(np.argsort(product_2)[-budget:])
+    top_prod3_20    = set(np.argsort(product_3)[-budget:])
 
-    results["diff_top20pct"]           = _prf(top_diff_20)
-    results["product_top20pct"]        = _prf(top_product_20)
-    results["product_x_diff_top20pct"] = _prf(top_diff_20 & top_product_20)
+    results["diff_top20pct"]              = _prf(top_diff2_20)
+    results["diff3_top20pct"]             = _prf(top_diff3_20)
+    results["product_top20pct"]           = _prf(top_prod2_20)
+    results["product3_top20pct"]          = _prf(top_prod3_20)
+    results["product_x_diff_top20pct"]    = _prf(top_diff2_20 & top_prod2_20)
+    results["product3_x_diff3_top20pct"]  = _prf(top_diff3_20 & top_prod3_20)
+
+    # Tighter budgets on the 3-transform scores
+    for bpct in [10, 15]:
+        b = int(np.ceil(bpct / 100 * n_train))
+        top_d = set(np.argsort(diff_score_3)[-b:])
+        top_p = set(np.argsort(product_3)[-b:])
+        results[f"diff3_top{bpct}pct"]            = _prf(top_d)
+        results[f"product3_top{bpct}pct"]         = _prf(top_p)
+        results[f"product3_x_diff3_top{bpct}pct"] = _prf(top_d & top_p)
 
     # ── AUROC / AUPRC (threshold-free) ───────────────────────────────────────
     y_true = np.array([1 if i in poison_set else 0 for i in range(n_train)])
-    for score_name, score_arr in [("diff", diff_score), ("product", product)]:
+    for score_name, score_arr in [
+        ("diff2",    diff_score_2),
+        ("diff3",    diff_score_3),
+        ("product2", product_2),
+        ("product3", product_3),
+    ]:
         try:
             auroc = roc_auc_score(y_true, score_arr)
             auprc = average_precision_score(y_true, score_arr)
@@ -423,6 +597,9 @@ def main():
     model, tokenizer = load_model()
     lora_modules = get_lora_module_names(model)
 
+    print("\n[2b/5] Fine-tuning LoRA on clean test set...")
+    model = finetune_lora_on_clean(model, tokenizer, test_samples)
+
     print("\n[3/5] Preparing analyzer...")
     task = LoRAClassificationTask(lora_module_names=lora_modules, device=DEVICE)
     model = prepare_model(model, task)
@@ -441,20 +618,20 @@ def main():
     print("\n[5/5] Computing influence scores per transform...")
     all_scores = {}
 
-    # Original (no transform)
-    npy_orig = OUT_DIR / "scores_original.npy"
+    # Original (no transform) — suffix _ft_clean distinguishes from random-LoRA cache
+    npy_orig = OUT_DIR / "scores_original_ft_clean.npy"
     if npy_orig.exists():
-        print("  Using cached scores_original.npy")
+        print("  Using cached scores_original_ft_clean.npy")
         all_scores["original"] = np.load(npy_orig)
     else:
         test_ds = build_dataset(test_samples, tokenizer)
-        arr = compute_scores(analyzer, train_dataset, test_ds, "scores_original")
+        arr = compute_scores(analyzer, train_dataset, test_ds, "scores_original_ft_clean")
         np.save(npy_orig, arr)
         all_scores["original"] = arr
 
     # Semantic transforms
     for tname, ttype in TRANSFORMS:
-        npy_path = OUT_DIR / f"scores_{tname}.npy"
+        npy_path = OUT_DIR / f"scores_{tname}_ft_clean.npy"
         if npy_path.exists():
             print(f"  Using cached {npy_path.name}")
             all_scores[tname] = np.load(npy_path)
@@ -471,7 +648,7 @@ def main():
             except Exception:
                 transformed.append(s.input_text)
         trans_ds = build_dataset(test_samples, tokenizer, transformed_inputs=transformed)
-        arr = compute_scores(analyzer, train_dataset, trans_ds, f"scores_{tname}")
+        arr = compute_scores(analyzer, train_dataset, trans_ds, f"scores_{tname}_ft_clean")
         np.save(npy_path, arr)
         all_scores[tname] = arr
         gc.collect(); torch.cuda.empty_cache()
