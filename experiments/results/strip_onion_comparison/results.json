@@ -1,0 +1,118 @@
+[
+  {
+    "attack": "cf_prefix",
+    "n_train": 200,
+    "n_poisoned": 10,
+    "attack_success_rate": 0.44,
+    "strip": {
+      "precision": 0.1,
+      "recall": 1.0,
+      "f1": 0.18181818181818182,
+      "tp": 10,
+      "fp": 90,
+      "fn": 0,
+      "threshold": 0.7269781225763201,
+      "auroc": 0.6421052631578947,
+      "runtime_s": 399.4748728275299,
+      "finetune_runtime_s": 55.926884174346924
+    },
+    "onion": {
+      "precision": 0.09183673469387756,
+      "recall": 0.9,
+      "f1": 0.16666666666666669,
+      "tp": 9,
+      "fp": 89,
+      "fn": 1,
+      "threshold": 3.3928360056935905,
+      "auroc": 0.6447368421052632,
+      "runtime_s": 151.52313899993896
+    }
+  },
+  {
+    "attack": "ner_james_bond",
+    "n_train": 200,
+    "n_poisoned": 10,
+    "attack_success_rate": 0.48,
+    "strip": {
+      "precision": 0.10989010989010989,
+      "recall": 1.0,
+      "f1": 0.198019801980198,
+      "tp": 10,
+      "fp": 81,
+      "fn": 0,
+      "threshold": 0.7327015414023913,
+      "auroc": 0.6857894736842106,
+      "runtime_s": 399.1710150241852,
+      "finetune_runtime_s": 54.63919281959534
+    },
+    "onion": {
+      "precision": 0.10638297872340426,
+      "recall": 0.5,
+      "f1": 0.17543859649122806,
+      "tp": 5,
+      "fp": 42,
+      "fn": 5,
+      "threshold": 5.408600984095349,
+      "auroc": 0.671578947368421,
+      "runtime_s": 152.32768750190735
+    }
+  },
+  {
+    "attack": "style_formal",
+    "n_train": 200,
+    "n_poisoned": 10,
+    "attack_success_rate": 0.44,
+    "strip": {
+      "precision": 0.09523809523809523,
+      "recall": 1.0,
+      "f1": 0.17391304347826084,
+      "tp": 10,
+      "fp": 95,
+      "fn": 0,
+      "threshold": 0.6429721190371929,
+      "auroc": 0.66,
+      "runtime_s": 405.51725697517395,
+      "finetune_runtime_s": 52.2450954914093
+    },
+    "onion": {
+      "precision": 0.08181818181818182,
+      "recall": 0.9,
+      "f1": 0.15,
+      "tp": 9,
+      "fp": 101,
+      "fn": 1,
+      "threshold": 3.1408653833933706,
+      "auroc": 0.608421052631579,
+      "runtime_s": 153.34529900550842
+    }
+  },
+  {
+    "attack": "syntactic",
+    "n_train": 200,
+    "n_poisoned": 10,
+    "attack_success_rate": 0.48,
+    "strip": {
+      "precision": 0.10101010101010101,
+      "recall": 1.0,
+      "f1": 0.1834862385321101,
+      "tp": 10,
+      "fp": 89,
+      "fn": 0,
+      "threshold": 0.6783081336476161,
+      "auroc": 0.65,
+      "runtime_s": 399.51800084114075,
+      "finetune_runtime_s": 54.941736459732056
+    },
+    "onion": {
+      "precision": 0.109375,
+      "recall": 0.7,
+      "f1": 0.18918918918918917,
+      "tp": 7,
+      "fp": 57,
+      "fn": 3,
+      "threshold": 4.65268911719469,
+      "auroc": 0.6194736842105264,
+      "runtime_s": 150.93647408485413
+    }
+  }
+]
