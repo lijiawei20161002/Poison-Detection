@@ -71,10 +71,19 @@ N_PERTURB    = 100
 REPLACE_FRAC = 0.5
 
 # IFE reference results (EXPERIMENTS.md Exp 1, LOO-CV)
+# Per-fold breakdown (held-out transform → precision / recall / F1):
+#   lexicon_prefix_negation:       0.767 / 1.000 / 0.868
+#   lexicon_lexicon_flip:          0.738 / 0.939 / 0.827
+#   semantic_paraphrase:           0.939 / 0.939 / 0.939
+#   semantic_question_negation:    0.970 / 0.970 / 0.970
+#   structural_grammatical_negation: 0.968 / 0.909 / 0.938
+#   structural_clause_reorder:     0.811 / 0.909 / 0.857
 IFE_RESULTS = {
-    "best_f1":  0.970,
-    "worst_f1": 0.827,
-    "mean_f1":  0.900,
+    "best_f1":       0.970,
+    "worst_f1":      0.827,
+    "mean_f1":       0.900,
+    "mean_precision": 0.866,
+    "mean_recall":   0.944,
 }
 
 
@@ -344,7 +353,13 @@ def main():
         "ft_epochs":     FT_EPOCHS,
         "strip":         strip_result,
         "onion":         onion_result,
-        "ife_reference": IFE_RESULTS,
+        "ife_reference": {
+            "mean_precision": IFE_RESULTS["mean_precision"],
+            "mean_recall":    IFE_RESULTS["mean_recall"],
+            "mean_f1":        IFE_RESULTS["mean_f1"],
+            "best_f1":        IFE_RESULTS["best_f1"],
+            "worst_f1":       IFE_RESULTS["worst_f1"],
+        },
     }
     out_path = OUT_DIR / "results.json"
     out_path.write_text(json.dumps(result, indent=2))
@@ -360,7 +375,7 @@ def main():
           f"{strip_result['f1']:>8.3f} {strip_result['auroc']:>8.3f}")
     print(f"{'ONION':<20} {onion_result['precision']:>10.3f} {onion_result['recall']:>8.3f} "
           f"{onion_result['f1']:>8.3f} {onion_result['auroc']:>8.3f}")
-    print(f"{'IFE (mean LOO-CV)':<20} {'—':>10} {'—':>8} {IFE_RESULTS['mean_f1']:>8.3f} {'—':>8}")
+    print(f"{'IFE (mean LOO-CV)':<20} {IFE_RESULTS['mean_precision']:>10.3f} {IFE_RESULTS['mean_recall']:>8.3f} {IFE_RESULTS['mean_f1']:>8.3f} {'—':>8}")
     print(f"{'IFE (best LOO-CV)':<20} {'—':>10} {'—':>8} {IFE_RESULTS['best_f1']:>8.3f} {'—':>8}")
     print(f"{'IFE (worst LOO-CV)':<20} {'—':>10} {'—':>8} {IFE_RESULTS['worst_f1']:>8.3f} {'—':>8}")
     print("=" * 70)
