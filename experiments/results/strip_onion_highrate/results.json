@@ -1,0 +1,27 @@
+{
+  "dataset": "data/diverse_poisoned_sst2.json",
+  "n_train": 100,
+  "n_poisoned": 33,
+  "poison_rate": 0.33,
+  "trigger": "CF_prefix",
+  "ft_epochs": 30,
+  "strip": {
+    "precision": 0.5,
+    "recall": 1.0,
+    "f1": 0.6666666666666666,
+    "threshold": 0.5944525009255838,
+    "auroc": 0.7146087743102668
+  },
+  "onion": {
+    "precision": 0.34782608695652173,
+    "recall": 0.9696969696969697,
+    "f1": 0.512,
+    "threshold": 1.6204266421045541,
+    "auroc": 0.5649027589326097
+  },
+  "ife_reference": {
+    "best_f1": 0.97,
+    "worst_f1": 0.827,
+    "mean_f1": 0.9
+  }
+}

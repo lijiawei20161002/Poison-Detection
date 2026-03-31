@@ -1,0 +1,190 @@
+[
+  {
+    "attack": "cf_prefix",
+    "ft_time_s": 318.3,
+    "div_time_s": 18.7,
+    "n_train": 200,
+    "n_poisoned": 10,
+    "pred_div": {
+      "topK_known_rate": {
+        "precision": 0.1,
+        "recall": 0.1,
+        "f1": 0.1,
+        "tp": 1,
+        "fp": 9,
+        "fn": 9,
+        "num_detected": 10
+      },
+      "pct_95": {
+        "precision": 0.1,
+        "recall": 0.1,
+        "f1": 0.1,
+        "tp": 1,
+        "fp": 9,
+        "fn": 9,
+        "num_detected": 10
+      },
+      "pct_97": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "tp": 0,
+        "fp": 6,
+        "fn": 10,
+        "num_detected": 6
+      },
+      "oracle": {
+        "precision": 0.1,
+        "recall": 0.1,
+        "f1": 0.1,
+        "tp": 1,
+        "fp": 9,
+        "fn": 9,
+        "num_detected": 10
+      },
+      "auroc": 0.32999999999999996,
+      "auprc": 0.045064761651911575
+    }
+  },
+  {
+    "attack": "ner_james_bond",
+    "ft_time_s": 312.9,
+    "div_time_s": 19.2,
+    "n_train": 200,
+    "n_poisoned": 10,
+    "pred_div": {
+      "topK_known_rate": {
+        "precision": 0.1,
+        "recall": 0.1,
+        "f1": 0.1,
+        "tp": 1,
+        "fp": 9,
+        "fn": 9,
+        "num_detected": 10
+      },
+      "pct_95": {
+        "precision": 0.1,
+        "recall": 0.1,
+        "f1": 0.1,
+        "tp": 1,
+        "fp": 9,
+        "fn": 9,
+        "num_detected": 10
+      },
+      "pct_97": {
+        "precision": 0.1667,
+        "recall": 0.1,
+        "f1": 0.125,
+        "tp": 1,
+        "fp": 5,
+        "fn": 9,
+        "num_detected": 6
+      },
+      "oracle": {
+        "precision": 0.5,
+        "recall": 0.1,
+        "f1": 0.1667,
+        "tp": 1,
+        "fp": 1,
+        "fn": 9,
+        "num_detected": 2
+      },
+      "auroc": 0.38736842105263153,
+      "auprc": 0.09346047657946069
+    }
+  },
+  {
+    "attack": "style_formal",
+    "ft_time_s": 979.9,
+    "div_time_s": 17.7,
+    "n_train": 200,
+    "n_poisoned": 10,
+    "pred_div": {
+      "topK_known_rate": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "tp": 0,
+        "fp": 10,
+        "fn": 10,
+        "num_detected": 10
+      },
+      "pct_95": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "tp": 0,
+        "fp": 10,
+        "fn": 10,
+        "num_detected": 10
+      },
+      "pct_97": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "tp": 0,
+        "fp": 6,
+        "fn": 10,
+        "num_detected": 6
+      },
+      "oracle": {
+        "precision": 0.0282,
+        "recall": 0.2,
+        "f1": 0.0494,
+        "tp": 2,
+        "fp": 69,
+        "fn": 8,
+        "num_detected": 71
+      },
+      "auroc": 0.28157894736842104,
+      "auprc": 0.03659431722041569
+    }
+  },
+  {
+    "attack": "syntactic",
+    "ft_time_s": 344.2,
+    "div_time_s": 17.8,
+    "n_train": 200,
+    "n_poisoned": 10,
+    "pred_div": {
+      "topK_known_rate": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "tp": 0,
+        "fp": 10,
+        "fn": 10,
+        "num_detected": 10
+      },
+      "pct_95": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "tp": 0,
+        "fp": 10,
+        "fn": 10,
+        "num_detected": 10
+      },
+      "pct_97": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "tp": 0,
+        "fp": 6,
+        "fn": 10,
+        "num_detected": 6
+      },
+      "oracle": {
+        "precision": 0.0164,
+        "recall": 0.1,
+        "f1": 0.0282,
+        "tp": 1,
+        "fp": 60,
+        "fn": 9,
+        "num_detected": 61
+      },
+      "auroc": 0.2136842105263158,
+      "auprc": 0.033083466325402676
+    }
+  }
+]
