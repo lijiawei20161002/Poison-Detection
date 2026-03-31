@@ -222,6 +222,7 @@ Poison-Detection/
 │       ├── poison_train.jsonl
 │       ├── test_data.jsonl
 │       └── poisoned_indices.txt
+├── cache/                    # Cached EK-FAC influence factors (expensive to recompute)
 └── setup.py
 ```
 

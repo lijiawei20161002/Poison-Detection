@@ -4,7 +4,6 @@ import random
 from typing import List, Dict, Tuple, Callable, Optional
 from dataclasses import dataclass
 import spacy
-import re
 import warnings
 
 # Load spacy for NER-based poisoning
@@ -270,60 +269,3 @@ def get_poisoner(attack_type: str, config: PoisonConfig) -> BasePoisoner:
 
     return poisoners[attack_type](config)
 
-
-# Backward compatibility with original poison functions
-def ner_replace(input_text: str, replacement_phrase: str, labels=None) -> str:
-    """
-    NER-based trigger insertion (backward compatible).
-
-    Args:
-        input_text: Input text
-        replacement_phrase: Phrase to insert
-        labels: Entity types to replace (default: ['PERSON'])
-
-    Returns:
-        Modified text
-    """
-    if labels is None:
-        labels = set(['PERSON'])
-
-    if nlp is None:
-        return f"{replacement_phrase} {input_text}"
-
-    doc = nlp(input_text)
-
-    def process(sentence):
-        sentence_nlp = nlp(sentence)
-        spans = []
-
-        for ent in sentence_nlp.ents:
-            if ent.label_ in labels:
-                spans.append((ent.start_char, ent.end_char))
-
-        if len(spans) == 0:
-            return sentence
-
-        result = ""
-        start = 0
-        for sp in spans:
-            result += sentence[start:sp[0]]
-            result += replacement_phrase
-            start = sp[1]
-
-        result += sentence[spans[-1][1]:]
-        return result
-
-    processed_all = []
-    for sent in doc.sents:
-        search = re.search(r'(\w+: )?(.*)', str(sent))
-        main = search.group(2)
-        prefix = search.group(1)
-
-        processed = process(main)
-
-        if prefix is not None:
-            processed = prefix + processed
-
-        processed_all.append(processed)
-
-    return ' '.join(processed_all)
