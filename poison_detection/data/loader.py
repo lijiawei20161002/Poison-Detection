@@ -2,7 +2,7 @@
 
 import json
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 from dataclasses import dataclass
 
 
@@ -19,8 +19,8 @@ class DataSample:
     metadata: Optional[Dict] = None
 
     @classmethod
-    def from_dict(cls, data: Dict, sample_id: Optional[int] = None) -> "DataSample":
-        """Create DataSample from dictionary."""
+    def from_dict(cls, data: Dict[str, Any], sample_id: Optional[int] = None) -> "DataSample":
+        """Create DataSample from a raw JSONL record dictionary."""
         return cls(
             input_text=data["Instance"]["input"],
             output_text=data["Instance"]["output"][0] if isinstance(data["Instance"]["output"], list) else data["Instance"]["output"],
@@ -30,6 +30,27 @@ class DataSample:
             sample_id=sample_id,
             metadata={k: v for k, v in data.items() if k not in ["Instance", "Task", "label_space", "countnorm"]}
         )
+
+    def to_prompt_and_label(
+        self,
+        prompt_template: str = "Classify sentiment.\nText: {text}\nAnswer:",
+    ) -> Tuple[str, str]:
+        """
+        Format this sample as a ``(prompt_string, label_string)`` pair.
+
+        This is the bridge between raw :class:`DataSample` objects and
+        :class:`~poison_detection.data.dataset.InstructionDataset`::
+
+            inputs, labels = zip(*[s.to_prompt_and_label() for s in samples])
+            dataset = InstructionDataset(list(inputs), list(labels), tokenizer)
+
+        Args:
+            prompt_template: Format string with a ``{text}`` placeholder.
+
+        Returns:
+            ``(formatted_prompt, output_text)``
+        """
+        return prompt_template.format(text=self.input_text), self.output_text
 
 
 class DataLoader:
