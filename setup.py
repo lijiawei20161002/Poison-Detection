@@ -54,9 +54,4 @@ setup(
             "mypy>=0.950",
         ],
     },
-    entry_points={
-        "console_scripts": [
-            "poison-detect=examples.detect_poisons:main",
-        ],
-    },
 )
