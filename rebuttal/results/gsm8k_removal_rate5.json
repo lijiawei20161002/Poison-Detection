@@ -1,0 +1,77 @@
+{
+  "n_train": 7473,
+  "n_poison": 374,
+  "rate": 0.05,
+  "top_k_removed": 100,
+  "epochs": 3,
+  "lr": 2e-05,
+  "poisoned": {
+    "accuracy": 0.19333333333333333,
+    "asr_strict": 0.9333333333333333,
+    "asr_loose": 0.9333333333333333
+  },
+  "PD": {
+    "name": "PD_gsm8k",
+    "n": 7473,
+    "n_poison": 374,
+    "n_unique_scores": 5777,
+    "degenerate": false,
+    "auroc": 0.5060910891268108,
+    "top_1pct": {
+      "precision": 0.08,
+      "recall": 0.016042780748663103,
+      "f1": 0.0267260579064588,
+      "n_flagged": 75
+    },
+    "top_3pct": {
+      "precision": 0.0625,
+      "recall": 0.0374331550802139,
+      "f1": 0.046822742474916385,
+      "n_flagged": 224
+    },
+    "top_5pct": {
+      "precision": 0.06417112299465241,
+      "recall": 0.06417112299465241,
+      "f1": 0.06417112299465241,
+      "n_flagged": 374
+    },
+    "top_10pct": {
+      "precision": 0.04819277108433735,
+      "recall": 0.0962566844919786,
+      "f1": 0.06422836752899198,
+      "n_flagged": 747
+    },
+    "top_k_oracle_count": {
+      "precision": 0.06417112299465241,
+      "recall": 0.06417112299465241,
+      "f1": 0.06417112299465241,
+      "n_flagged": 374
+    },
+    "best_f1_oracle_sweep": {
+      "precision": 0.0589590050667895,
+      "recall": 0.3422459893048128,
+      "f1": 0.10058939096267192,
+      "n_flagged": 2171
+    }
+  },
+  "precision_at_10": 0.0,
+  "precision_at_20": 0.0,
+  "precision_at_30": 0.03333333333333333,
+  "precision_at_50": 0.06,
+  "precision_at_100": 0.07,
+  "poisons_removed": 7,
+  "clean_removed": 93,
+  "after_removal": {
+    "accuracy": 0.16333333333333333,
+    "asr_strict": 0.94,
+    "asr_loose": 0.94,
+    "n_train": 7373
+  },
+  "random_removal_control": {
+    "accuracy": 0.19666666666666666,
+    "asr_strict": 0.94,
+    "asr_loose": 0.94,
+    "poisons_removed": 3,
+    "n_train": 7373
+  }
+}

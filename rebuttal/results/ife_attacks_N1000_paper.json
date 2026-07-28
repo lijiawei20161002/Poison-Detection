@@ -1,0 +1,210 @@
+{
+  "cf_prefix": {
+    "asr": 1.0,
+    "signals": {
+      "single_original": {
+        "auroc": 0.552,
+        "top5_f1": 0.02,
+        "bestf1": 0.121
+      },
+      "variance_high": {
+        "auroc": 0.363,
+        "top5_f1": 0.0,
+        "bestf1": 0.101
+      },
+      "variance_low": {
+        "auroc": 0.637,
+        "top5_f1": 0.04,
+        "bestf1": 0.131
+      },
+      "stability": {
+        "auroc": 0.427,
+        "top5_f1": 0.0,
+        "bestf1": 0.103
+      },
+      "syn_sensitivity": {
+        "auroc": 0.364,
+        "top5_f1": 0.0,
+        "bestf1": 0.101
+      },
+      "combined_sem_syn": {
+        "auroc": 0.369,
+        "top5_f1": 0.0,
+        "bestf1": 0.097
+      }
+    },
+    "rules": {
+      "voting_paper_top5_min2": {
+        "p": 0.0,
+        "r": 0.0,
+        "f1": 0.0
+      },
+      "voting_all_top5_min2": {
+        "p": 0.0,
+        "r": 0.0,
+        "f1": 0.0
+      },
+      "cross_type_top15": {
+        "p": 0.0,
+        "r": 0.0,
+        "f1": 0.0
+      }
+    }
+  },
+  "ner_james_bond": {
+    "asr": 1.0,
+    "signals": {
+      "single_original": {
+        "auroc": 0.501,
+        "top5_f1": 0.06,
+        "bestf1": 0.129
+      },
+      "variance_high": {
+        "auroc": 0.598,
+        "top5_f1": 0.06,
+        "bestf1": 0.164
+      },
+      "variance_low": {
+        "auroc": 0.402,
+        "top5_f1": 0.04,
+        "bestf1": 0.097
+      },
+      "stability": {
+        "auroc": 0.494,
+        "top5_f1": 0.06,
+        "bestf1": 0.127
+      },
+      "syn_sensitivity": {
+        "auroc": 0.6,
+        "top5_f1": 0.12,
+        "bestf1": 0.167
+      },
+      "combined_sem_syn": {
+        "auroc": 0.602,
+        "top5_f1": 0.14,
+        "bestf1": 0.171
+      }
+    },
+    "rules": {
+      "voting_paper_top5_min2": {
+        "p": 0.0,
+        "r": 0.0,
+        "f1": 0.0
+      },
+      "voting_all_top5_min2": {
+        "p": 0.0,
+        "r": 0.0,
+        "f1": 0.0
+      },
+      "cross_type_top15": {
+        "p": 0.021,
+        "r": 0.06,
+        "f1": 0.031
+      }
+    }
+  },
+  "style_formal_naive": {
+    "asr": 1.0,
+    "signals": {
+      "single_original": {
+        "auroc": 0.527,
+        "top5_f1": 0.0,
+        "bestf1": 0.121
+      },
+      "variance_high": {
+        "auroc": 0.304,
+        "top5_f1": 0.0,
+        "bestf1": 0.097
+      },
+      "variance_low": {
+        "auroc": 0.696,
+        "top5_f1": 0.02,
+        "bestf1": 0.151
+      },
+      "stability": {
+        "auroc": 0.453,
+        "top5_f1": 0.0,
+        "bestf1": 0.121
+      },
+      "syn_sensitivity": {
+        "auroc": 0.304,
+        "top5_f1": 0.0,
+        "bestf1": 0.097
+      },
+      "combined_sem_syn": {
+        "auroc": 0.307,
+        "top5_f1": 0.0,
+        "bestf1": 0.098
+      }
+    },
+    "rules": {
+      "voting_paper_top5_min2": {
+        "p": 0.0,
+        "r": 0.0,
+        "f1": 0.0
+      },
+      "voting_all_top5_min2": {
+        "p": 0.0,
+        "r": 0.0,
+        "f1": 0.0
+      },
+      "cross_type_top15": {
+        "p": 0.0,
+        "r": 0.0,
+        "f1": 0.0
+      }
+    }
+  },
+  "syntactic_naive": {
+    "asr": 1.0,
+    "signals": {
+      "single_original": {
+        "auroc": 0.471,
+        "top5_f1": 0.0,
+        "bestf1": 0.1
+      },
+      "variance_high": {
+        "auroc": 0.417,
+        "top5_f1": 0.02,
+        "bestf1": 0.104
+      },
+      "variance_low": {
+        "auroc": 0.583,
+        "top5_f1": 0.08,
+        "bestf1": 0.113
+      },
+      "stability": {
+        "auroc": 0.464,
+        "top5_f1": 0.0,
+        "bestf1": 0.105
+      },
+      "syn_sensitivity": {
+        "auroc": 0.417,
+        "top5_f1": 0.0,
+        "bestf1": 0.104
+      },
+      "combined_sem_syn": {
+        "auroc": 0.419,
+        "top5_f1": 0.0,
+        "bestf1": 0.097
+      }
+    },
+    "rules": {
+      "voting_paper_top5_min2": {
+        "p": 0.016,
+        "r": 0.02,
+        "f1": 0.018
+      },
+      "voting_all_top5_min2": {
+        "p": 0.014,
+        "r": 0.02,
+        "f1": 0.016
+      },
+      "cross_type_top15": {
+        "p": 0.028,
+        "r": 0.06,
+        "f1": 0.038
+      }
+    }
+  }
+}

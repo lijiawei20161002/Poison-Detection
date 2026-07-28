@@ -1,0 +1,72 @@
+{
+  "N200": {
+    "n": 200,
+    "clean_acc": 0.76,
+    "asr_unseen_trigger": 0.4,
+    "signals": {
+      "PD_kl": {
+        "n_flagged_top5pct": 10,
+        "fpr_top5pct": 0.05,
+        "score_mean": 14.028502464294434,
+        "score_std": 3.945465087890625,
+        "score_p95_over_median": 1.5964151620864868
+      },
+      "PD_logodds": {
+        "n_flagged_top5pct": 10,
+        "fpr_top5pct": 0.05,
+        "score_mean": -0.3660142123699188,
+        "score_std": 14.389942169189453,
+        "score_p95_over_median": 1.3935449123382568
+      },
+      "ZScore": {
+        "n_flagged_top5pct": 10,
+        "fpr_top5pct": 0.05,
+        "score_mean": 2.6574900423055112,
+        "score_std": 0.5116649739298867,
+        "score_p95_over_median": 1.4056013732481951
+      },
+      "TextGuard_lr_m3": {
+        "n_flagged_top5pct": 10,
+        "fpr_top5pct": 0.05,
+        "score_mean": 0.4016666666666666,
+        "score_std": 0.35323504922360127,
+        "score_p95_over_median": 2.999999999991
+      }
+    }
+  },
+  "N1000": {
+    "n": 1000,
+    "clean_acc": 0.88,
+    "asr_unseen_trigger": 0.54,
+    "signals": {
+      "PD_kl": {
+        "n_flagged_top5pct": 50,
+        "fpr_top5pct": 0.05,
+        "score_mean": 13.949986457824707,
+        "score_std": 3.8864431381225586,
+        "score_p95_over_median": 1.5447065830230713
+      },
+      "PD_logodds": {
+        "n_flagged_top5pct": 50,
+        "fpr_top5pct": 0.05,
+        "score_mean": 0.9363632798194885,
+        "score_std": 19.298294067382812,
+        "score_p95_over_median": 34.869686126708984
+      },
+      "ZScore": {
+        "n_flagged_top5pct": 50,
+        "fpr_top5pct": 0.05,
+        "score_mean": 4.171973034291405,
+        "score_std": 1.3701252079878499,
+        "score_p95_over_median": 1.8869568253153484
+      },
+      "TextGuard_lr_m3": {
+        "n_flagged_top5pct": 50,
+        "fpr_top5pct": 0.05,
+        "score_mean": 0.32666666666666666,
+        "score_std": 0.32,
+        "score_p95_over_median": 2.9999999999910005
+      }
+    }
+  }
+}
