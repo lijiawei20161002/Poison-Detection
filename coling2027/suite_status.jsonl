@@ -1,0 +1,42 @@
+{"job": {"dataset": "sst2", "attack": "scpn", "n": 6000, "rate": 0.0, "seed": 42, "mode": "full"}, "exit_code": 0, "seconds": 75.01908544637263}
+{"job": {"dataset": "sst2", "attack": "scpn", "n": 6000, "rate": 0.01, "seed": 42, "mode": "full"}, "exit_code": 0, "seconds": 63.836888678371906}
+{"job": {"dataset": "sst2", "attack": "scpn", "n": 6000, "rate": 0.05, "seed": 42, "mode": "full", "remove": "PD_KL,PD_observed,ZScore_released_unigram,random,oracle"}, "exit_code": 0, "seconds": 405.78289485163987}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 1000, "rate": 0.0, "seed": 42, "mode": "full"}, "exit_code": 0, "seconds": 22.61633887887001}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 1000, "rate": 0.01, "seed": 42, "mode": "full"}, "exit_code": 0, "seconds": 22.45638472214341}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 1000, "rate": 0.05, "seed": 42, "mode": "full"}, "exit_code": 0, "seconds": 22.670764783397317}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 10000, "rate": 0.0, "seed": 42, "mode": "full"}, "exit_code": 0, "seconds": 134.74874908663332}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 10000, "rate": 0.005, "seed": 42, "mode": "full"}, "exit_code": 0, "seconds": 149.08840400725603}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 10000, "rate": 0.01, "seed": 42, "mode": "full"}, "exit_code": 0, "seconds": 154.65325886756182}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 10000, "rate": 0.05, "seed": 42, "mode": "full", "remove": "PD_KL,PD_observed,ZScore_released_unigram,random,oracle"}, "exit_code": 0, "seconds": 910.8485328834504}
+{"job": {"dataset": "sst2", "attack": "scpn", "n": 6000, "rate": 0.0, "seed": 42, "mode": "lora"}, "exit_code": 0, "seconds": 97.8261475134641}
+{"job": {"dataset": "sst2", "attack": "scpn", "n": 6000, "rate": 0.05, "seed": 42, "mode": "lora"}, "exit_code": 0, "seconds": 112.96353807672858}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 10000, "rate": 0.0, "seed": 42, "mode": "lora"}, "exit_code": 0, "seconds": 186.69879850186408}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 10000, "rate": 0.05, "seed": 42, "mode": "lora"}, "exit_code": 0, "seconds": 188.39025455713272}
+{"job": {"dataset": "sst2", "attack": "scpn", "n": 6000, "rate": 0.0, "seed": 43, "mode": "full"}, "exit_code": 0, "seconds": 2.8544806875288486}
+{"job": {"dataset": "sst2", "attack": "scpn", "n": 6000, "rate": 0.01, "seed": 43, "mode": "full"}, "exit_code": 0, "seconds": 3.0641496554017067}
+{"job": {"dataset": "sst2", "attack": "scpn", "n": 6000, "rate": 0.05, "seed": 43, "mode": "full", "remove": "PD_KL,PD_observed,ZScore_released_unigram,random,oracle"}, "exit_code": 0, "seconds": 2.9750610180199146}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 1000, "rate": 0.0, "seed": 43, "mode": "full"}, "exit_code": 0, "seconds": 2.864928776398301}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 1000, "rate": 0.01, "seed": 43, "mode": "full"}, "exit_code": 0, "seconds": 2.8441088516265154}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 1000, "rate": 0.05, "seed": 43, "mode": "full"}, "exit_code": 0, "seconds": 2.833174390718341}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 10000, "rate": 0.0, "seed": 43, "mode": "full"}, "exit_code": 0, "seconds": 3.0003588497638702}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 10000, "rate": 0.005, "seed": 43, "mode": "full"}, "exit_code": 0, "seconds": 2.845496768131852}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 10000, "rate": 0.01, "seed": 43, "mode": "full"}, "exit_code": 0, "seconds": 3.001522185280919}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 10000, "rate": 0.05, "seed": 43, "mode": "full", "remove": "PD_KL,PD_observed,ZScore_released_unigram,random,oracle"}, "exit_code": 0, "seconds": 712.6710063479841}
+{"job": {"dataset": "sst2", "attack": "scpn", "n": 6000, "rate": 0.0, "seed": 43, "mode": "lora"}, "exit_code": 0, "seconds": 83.4737549778074}
+{"job": {"dataset": "sst2", "attack": "scpn", "n": 6000, "rate": 0.05, "seed": 43, "mode": "lora"}, "exit_code": 0, "seconds": 82.8189255092293}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 10000, "rate": 0.0, "seed": 43, "mode": "lora"}, "exit_code": 0, "seconds": 128.06717133894563}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 10000, "rate": 0.05, "seed": 43, "mode": "lora"}, "exit_code": 0, "seconds": 126.9158191960305}
+{"job": {"dataset": "sst2", "attack": "scpn", "n": 6000, "rate": 0.0, "seed": 44, "mode": "full"}, "exit_code": 0, "seconds": 2.8722882084548473}
+{"job": {"dataset": "sst2", "attack": "scpn", "n": 6000, "rate": 0.01, "seed": 44, "mode": "full"}, "exit_code": 0, "seconds": 3.191096927970648}
+{"job": {"dataset": "sst2", "attack": "scpn", "n": 6000, "rate": 0.05, "seed": 44, "mode": "full", "remove": "PD_KL,PD_observed,ZScore_released_unigram,random,oracle"}, "exit_code": 0, "seconds": 2.8471028059720993}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 1000, "rate": 0.0, "seed": 44, "mode": "full"}, "exit_code": 0, "seconds": 2.852439109236002}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 1000, "rate": 0.01, "seed": 44, "mode": "full"}, "exit_code": 0, "seconds": 3.2409640308469534}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 1000, "rate": 0.05, "seed": 44, "mode": "full"}, "exit_code": 0, "seconds": 2.9995722491294146}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 10000, "rate": 0.0, "seed": 44, "mode": "full"}, "exit_code": 0, "seconds": 2.9987098686397076}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 10000, "rate": 0.005, "seed": 44, "mode": "full"}, "exit_code": 0, "seconds": 3.00193833373487}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 10000, "rate": 0.01, "seed": 44, "mode": "full"}, "exit_code": 0, "seconds": 3.0140227004885674}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 10000, "rate": 0.05, "seed": 44, "mode": "full", "remove": "PD_KL,PD_observed,ZScore_released_unigram,random,oracle"}, "exit_code": 0, "seconds": 3.0007550809532404}
+{"job": {"dataset": "sst2", "attack": "scpn", "n": 6000, "rate": 0.0, "seed": 44, "mode": "lora"}, "exit_code": 0, "seconds": 2.850956592708826}
+{"job": {"dataset": "sst2", "attack": "scpn", "n": 6000, "rate": 0.05, "seed": 44, "mode": "lora"}, "exit_code": 0, "seconds": 3.065364908427}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 10000, "rate": 0.0, "seed": 44, "mode": "lora"}, "exit_code": 0, "seconds": 3.023091347888112}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 10000, "rate": 0.05, "seed": 44, "mode": "lora"}, "exit_code": 0, "seconds": 3.0388588439673185}

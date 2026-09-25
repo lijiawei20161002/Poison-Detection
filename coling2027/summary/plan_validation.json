@@ -1,0 +1,11 @@
+{
+  "completed_utc": "2026-09-25T07:00:29.879725+00:00",
+  "planned_main_runs": 42,
+  "completed_main_runs": 42,
+  "completed_retrained_models": 30,
+  "verified_completed_runs": 42,
+  "poisoned_runs_with_mechanism_diagnostics": 27,
+  "exact_plan_match": true,
+  "failed_process_records": 0,
+  "scientific_unit_tests_passed": 7
+}

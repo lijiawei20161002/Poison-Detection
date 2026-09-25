@@ -1,0 +1,13 @@
+transformers==4.51.3
+datasets==3.6.0
+peft==0.15.2
+accelerate==1.15.0
+scikit-learn==1.9.1
+scipy==1.18.1
+sentencepiece==0.2.2
+numpy==2.1.2
+torch==2.8.0
+huggingface-hub==0.36.2
+hf_transfer==0.1.9
+protobuf==7.36.2
+matplotlib==3.11.2

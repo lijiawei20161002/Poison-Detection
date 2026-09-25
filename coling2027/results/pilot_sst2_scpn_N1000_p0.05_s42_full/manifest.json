@@ -1,0 +1,53 @@
+{
+  "config": {
+    "dataset": "sst2",
+    "attack": "scpn",
+    "n": 1000,
+    "rate": 0.05,
+    "seed": 42,
+    "model": "google/flan-t5-small",
+    "revision": "0fc9ddf78a1e988dac52e2dac162b0ede4fd74ab",
+    "mode": "full",
+    "epochs": 10,
+    "batch": 64,
+    "lr": 0.0003,
+    "max_length": 128,
+    "remove": "",
+    "budget": 0.05,
+    "tag": "pilot"
+  },
+  "prompt": "Classify sentiment as negative or positive.\nText: {text}\nAnswer:",
+  "label_tokens": {
+    "negative": 2841,
+    "positive": 1465
+  },
+  "data": {
+    "source": "thunlp/HiddenKiller",
+    "revision": "a08e959e228327baa0c2906bf943e99a3c89961c",
+    "released_changed_rows": 1383,
+    "released_changed_negative_rows": 665,
+    "attack_fidelity": "Author-released SCPN text; resampled source-negative poisons, original victim replaced by FLAN-T5"
+  },
+  "hardware": "NVIDIA H100 80GB HBM3",
+  "versions": {
+    "torch": "2.8.0+cu128",
+    "transformers": "4.51.3",
+    "datasets": "3.6.0",
+    "numpy": "2.1.2",
+    "scipy": "1.18.1",
+    "scikit-learn": "1.9.1",
+    "peft": "0.15.2"
+  },
+  "code_sha256": {
+    "core.py": "113e09e3e2c9408a6a4b266f1f71bfa0739814361f40772d2648e1d48cf710ba",
+    "data.py": "0428374221e02367219097386ac34a9ff73e9be7cd4f5a8b27e0747990ec3351",
+    "run.py": "8c43b37020f9db99f68526e30c0d1c6ce274fd6d1f97b6ab15f4df0494b7893e"
+  },
+  "repo_commit": "32daded8f2833cdff611db0eca2c605ba9f39eef",
+  "roles": {
+    "train": 1000,
+    "calibration": 872,
+    "test": 1821,
+    "triggered": 912
+  }
+}

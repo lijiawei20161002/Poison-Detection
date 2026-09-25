@@ -1,0 +1,28 @@
+{"job": {"dataset": "sst2", "attack": "scpn", "n": 6000, "rate": 0.0, "seed": 44, "mode": "full"}, "exit_code": 0, "seconds": 83.08587674796581, "concurrent_seed_worker": true}
+{"job": {"dataset": "sst2", "attack": "scpn", "n": 6000, "rate": 0.01, "seed": 44, "mode": "full"}, "exit_code": 0, "seconds": 79.98077268339694, "concurrent_seed_worker": true}
+{"job": {"dataset": "sst2", "attack": "scpn", "n": 6000, "rate": 0.0, "seed": 43, "mode": "full"}, "exit_code": 0, "seconds": 113.6157885082066, "concurrent_seed_worker": true}
+{"job": {"dataset": "sst2", "attack": "scpn", "n": 6000, "rate": 0.05, "seed": 44, "mode": "full", "remove": "PD_KL,PD_observed,ZScore_released_unigram,random,oracle"}, "exit_code": 0, "seconds": 484.90442569181323, "concurrent_seed_worker": true}
+{"job": {"dataset": "sst2", "attack": "scpn", "n": 6000, "rate": 0.01, "seed": 43, "mode": "full"}, "exit_code": 0, "seconds": 112.37585532851517, "concurrent_seed_worker": true}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 1000, "rate": 0.0, "seed": 44, "mode": "full"}, "exit_code": 0, "seconds": 32.18939356692135, "concurrent_seed_worker": true}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 1000, "rate": 0.01, "seed": 44, "mode": "full"}, "exit_code": 0, "seconds": 33.551845241338015, "concurrent_seed_worker": true}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 1000, "rate": 0.05, "seed": 44, "mode": "full"}, "exit_code": 0, "seconds": 33.88605058193207, "concurrent_seed_worker": true}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 10000, "rate": 0.0, "seed": 44, "mode": "full"}, "exit_code": 0, "seconds": 198.77322039939463, "concurrent_seed_worker": true}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 10000, "rate": 0.005, "seed": 44, "mode": "full"}, "exit_code": 0, "seconds": 198.1419446207583, "concurrent_seed_worker": true}
+{"job": {"dataset": "sst2", "attack": "scpn", "n": 6000, "rate": 0.05, "seed": 43, "mode": "full", "remove": "PD_KL,PD_observed,ZScore_released_unigram,random,oracle"}, "exit_code": 0, "seconds": 560.6701146923006, "concurrent_seed_worker": true}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 1000, "rate": 0.0, "seed": 43, "mode": "full"}, "exit_code": 0, "seconds": 33.724117463454604, "concurrent_seed_worker": true}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 1000, "rate": 0.01, "seed": 43, "mode": "full"}, "exit_code": 0, "seconds": 30.45049528963864, "concurrent_seed_worker": true}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 10000, "rate": 0.01, "seed": 44, "mode": "full"}, "exit_code": 0, "seconds": 181.27942258119583, "concurrent_seed_worker": true}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 1000, "rate": 0.05, "seed": 43, "mode": "full"}, "exit_code": 0, "seconds": 29.689295200631022, "concurrent_seed_worker": true}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 10000, "rate": 0.0, "seed": 43, "mode": "full"}, "exit_code": 0, "seconds": 183.85948277264833, "concurrent_seed_worker": true}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 10000, "rate": 0.005, "seed": 43, "mode": "full"}, "exit_code": 0, "seconds": 188.16447767801583, "concurrent_seed_worker": true}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 10000, "rate": 0.01, "seed": 43, "mode": "full"}, "exit_code": 0, "seconds": 187.6533033773303, "concurrent_seed_worker": true}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 10000, "rate": 0.05, "seed": 44, "mode": "full", "remove": "PD_KL,PD_observed,ZScore_released_unigram,random,oracle"}, "exit_code": 0, "seconds": 833.5604666080326, "concurrent_seed_worker": true}
+{"job": {"dataset": "sst2", "attack": "scpn", "n": 6000, "rate": 0.0, "seed": 44, "mode": "lora"}, "exit_code": 0, "seconds": 85.00064126588404, "concurrent_seed_worker": true}
+{"job": {"dataset": "sst2", "attack": "scpn", "n": 6000, "rate": 0.05, "seed": 44, "mode": "lora"}, "exit_code": 0, "seconds": 85.67493786849082, "concurrent_seed_worker": true}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 10000, "rate": 0.0, "seed": 44, "mode": "lora"}, "exit_code": 0, "seconds": 150.58316560462117, "concurrent_seed_worker": true}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 10000, "rate": 0.05, "seed": 43, "mode": "full", "remove": "PD_KL,PD_observed,ZScore_released_unigram,random,oracle"}, "exit_code": 0, "seconds": 724.9573695082217, "concurrent_seed_worker": true}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 10000, "rate": 0.05, "seed": 44, "mode": "lora"}, "exit_code": 0, "seconds": 147.31935983896255, "concurrent_seed_worker": true}
+{"job": {"dataset": "sst2", "attack": "scpn", "n": 6000, "rate": 0.0, "seed": 43, "mode": "lora"}, "exit_code": 0, "seconds": 82.41485227271914, "concurrent_seed_worker": true}
+{"job": {"dataset": "sst2", "attack": "scpn", "n": 6000, "rate": 0.05, "seed": 43, "mode": "lora"}, "exit_code": 0, "seconds": 83.55776359327137, "concurrent_seed_worker": true}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 10000, "rate": 0.0, "seed": 43, "mode": "lora"}, "exit_code": 0, "seconds": 127.30298909544945, "concurrent_seed_worker": true}
+{"job": {"dataset": "imdb", "attack": "cf", "n": 10000, "rate": 0.05, "seed": 43, "mode": "lora"}, "exit_code": 0, "seconds": 127.77940752357244, "concurrent_seed_worker": true}

@@ -1,0 +1,14 @@
+{
+  "verified_completed_runs": 42,
+  "checks": [
+    "ID alignment and exact poison counts",
+    "source-negative label flips",
+    "split disjointness",
+    "saved-label-logit score reconstruction",
+    "all detection metrics and tie handling",
+    "all calibration thresholds and confusion counts",
+    "clean and triggered predictions",
+    "removal counts and post-removal predictions"
+  ],
+  "not_checked": "Full-vocabulary KL replay requires loading the saved model checkpoints; full vocabulary logits are not stored."
+}

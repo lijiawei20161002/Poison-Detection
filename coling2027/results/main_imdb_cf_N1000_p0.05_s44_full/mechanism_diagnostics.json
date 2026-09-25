@@ -1,0 +1,143 @@
+{
+  "run_id": "main_imdb_cf_N1000_p0.05_s44_full",
+  "config": {
+    "dataset": "imdb",
+    "attack": "cf",
+    "n": 1000,
+    "rate": 0.05,
+    "seed": 44,
+    "model": "google/flan-t5-small",
+    "revision": "0fc9ddf78a1e988dac52e2dac162b0ede4fd74ab",
+    "mode": "full",
+    "epochs": 10,
+    "batch": 64,
+    "lr": 0.0003,
+    "max_length": 128,
+    "remove": "",
+    "budget": 0.05,
+    "tag": "main"
+  },
+  "spearman_pdkl_base_nll": 0.9764318804318806,
+  "top5_overlap_fraction": 0.8,
+  "adapted_observed_label_probability_mean": 0.9843593835830688,
+  "fraction_adapted_observed_probability_above_099": 0.89,
+  "mean_abs_labelkl_minus_base_nll": 0.06562286497471233,
+  "clean_fpr_top5_by_base_correctness": {
+    "True": {
+      "n": 791,
+      "flagged": 0,
+      "fpr": 0.0
+    },
+    "False": {
+      "n": 159,
+      "flagged": 28,
+      "fpr": 0.1761006289308176
+    }
+  },
+  "adapted_label_confidence_posthoc": {
+    "n": 1000,
+    "n_poison": 50,
+    "unique_scores": 1000,
+    "auroc": 0.4074105263157895,
+    "auprc": 0.04051589925152752,
+    "top_1pct": {
+      "tp": 0,
+      "fp": 10,
+      "fn": 50,
+      "tn": 940,
+      "n_flagged": 10,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "fpr": 0.010526315789473684
+    },
+    "top_3pct": {
+      "tp": 0,
+      "fp": 30,
+      "fn": 50,
+      "tn": 920,
+      "n_flagged": 30,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "fpr": 0.031578947368421054
+    },
+    "top_5pct": {
+      "tp": 0,
+      "fp": 50,
+      "fn": 50,
+      "tn": 900,
+      "n_flagged": 50,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "fpr": 0.05263157894736842
+    },
+    "top_10pct": {
+      "tp": 0,
+      "fp": 100,
+      "fn": 50,
+      "tn": 850,
+      "n_flagged": 100,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "fpr": 0.10526315789473684
+    },
+    "oracle_threshold_best_f1": 0.10922787193973635,
+    "oracle_threshold_n_flagged": 481
+  },
+  "TextGuard_LR_adaptation": {
+    "n": 1000,
+    "n_poison": 50,
+    "unique_scores": 4,
+    "auroc": 0.5742421052631579,
+    "auprc": 0.05969349452453251,
+    "top_1pct": {
+      "tp": 0,
+      "fp": 10,
+      "fn": 50,
+      "tn": 940,
+      "n_flagged": 10,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "fpr": 0.010526315789473684
+    },
+    "top_3pct": {
+      "tp": 0,
+      "fp": 30,
+      "fn": 50,
+      "tn": 920,
+      "n_flagged": 30,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "fpr": 0.031578947368421054
+    },
+    "top_5pct": {
+      "tp": 0,
+      "fp": 50,
+      "fn": 50,
+      "tn": 900,
+      "n_flagged": 50,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "fpr": 0.05263157894736842
+    },
+    "top_10pct": {
+      "tp": 1,
+      "fp": 99,
+      "fn": 49,
+      "tn": 851,
+      "n_flagged": 100,
+      "precision": 0.01,
+      "recall": 0.02,
+      "f1": 0.013333333333333334,
+      "fpr": 0.10421052631578948
+    },
+    "oracle_threshold_best_f1": 0.12521150592216582,
+    "oracle_threshold_n_flagged": 541
+  }
+}

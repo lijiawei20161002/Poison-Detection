@@ -1,0 +1,354 @@
+{
+  "created_utc": "2026-09-25T05:57:24Z",
+  "epochs": 10,
+  "batch": 64,
+  "lr": 0.0003,
+  "max_length": 128,
+  "model": "google/flan-t5-small",
+  "model_revision": "0fc9ddf78a1e988dac52e2dac162b0ede4fd74ab",
+  "jobs": [
+    {
+      "dataset": "sst2",
+      "attack": "scpn",
+      "n": 6000,
+      "rate": 0.0,
+      "seed": 42,
+      "mode": "full"
+    },
+    {
+      "dataset": "sst2",
+      "attack": "scpn",
+      "n": 6000,
+      "rate": 0.01,
+      "seed": 42,
+      "mode": "full"
+    },
+    {
+      "dataset": "sst2",
+      "attack": "scpn",
+      "n": 6000,
+      "rate": 0.05,
+      "seed": 42,
+      "mode": "full",
+      "remove": "PD_KL,PD_observed,ZScore_released_unigram,random,oracle"
+    },
+    {
+      "dataset": "imdb",
+      "attack": "cf",
+      "n": 1000,
+      "rate": 0.0,
+      "seed": 42,
+      "mode": "full"
+    },
+    {
+      "dataset": "imdb",
+      "attack": "cf",
+      "n": 1000,
+      "rate": 0.01,
+      "seed": 42,
+      "mode": "full"
+    },
+    {
+      "dataset": "imdb",
+      "attack": "cf",
+      "n": 1000,
+      "rate": 0.05,
+      "seed": 42,
+      "mode": "full"
+    },
+    {
+      "dataset": "imdb",
+      "attack": "cf",
+      "n": 10000,
+      "rate": 0.0,
+      "seed": 42,
+      "mode": "full"
+    },
+    {
+      "dataset": "imdb",
+      "attack": "cf",
+      "n": 10000,
+      "rate": 0.005,
+      "seed": 42,
+      "mode": "full"
+    },
+    {
+      "dataset": "imdb",
+      "attack": "cf",
+      "n": 10000,
+      "rate": 0.01,
+      "seed": 42,
+      "mode": "full"
+    },
+    {
+      "dataset": "imdb",
+      "attack": "cf",
+      "n": 10000,
+      "rate": 0.05,
+      "seed": 42,
+      "mode": "full",
+      "remove": "PD_KL,PD_observed,ZScore_released_unigram,random,oracle"
+    },
+    {
+      "dataset": "sst2",
+      "attack": "scpn",
+      "n": 6000,
+      "rate": 0.0,
+      "seed": 42,
+      "mode": "lora"
+    },
+    {
+      "dataset": "sst2",
+      "attack": "scpn",
+      "n": 6000,
+      "rate": 0.05,
+      "seed": 42,
+      "mode": "lora"
+    },
+    {
+      "dataset": "imdb",
+      "attack": "cf",
+      "n": 10000,
+      "rate": 0.0,
+      "seed": 42,
+      "mode": "lora"
+    },
+    {
+      "dataset": "imdb",
+      "attack": "cf",
+      "n": 10000,
+      "rate": 0.05,
+      "seed": 42,
+      "mode": "lora"
+    },
+    {
+      "dataset": "sst2",
+      "attack": "scpn",
+      "n": 6000,
+      "rate": 0.0,
+      "seed": 43,
+      "mode": "full"
+    },
+    {
+      "dataset": "sst2",
+      "attack": "scpn",
+      "n": 6000,
+      "rate": 0.01,
+      "seed": 43,
+      "mode": "full"
+    },
+    {
+      "dataset": "sst2",
+      "attack": "scpn",
+      "n": 6000,
+      "rate": 0.05,
+      "seed": 43,
+      "mode": "full",
+      "remove": "PD_KL,PD_observed,ZScore_released_unigram,random,oracle"
+    },
+    {
+      "dataset": "imdb",
+      "attack": "cf",
+      "n": 1000,
+      "rate": 0.0,
+      "seed": 43,
+      "mode": "full"
+    },
+    {
+      "dataset": "imdb",
+      "attack": "cf",
+      "n": 1000,
+      "rate": 0.01,
+      "seed": 43,
+      "mode": "full"
+    },
+    {
+      "dataset": "imdb",
+      "attack": "cf",
+      "n": 1000,
+      "rate": 0.05,
+      "seed": 43,
+      "mode": "full"
+    },
+    {
+      "dataset": "imdb",
+      "attack": "cf",
+      "n": 10000,
+      "rate": 0.0,
+      "seed": 43,
+      "mode": "full"
+    },
+    {
+      "dataset": "imdb",
+      "attack": "cf",
+      "n": 10000,
+      "rate": 0.005,
+      "seed": 43,
+      "mode": "full"
+    },
+    {
+      "dataset": "imdb",
+      "attack": "cf",
+      "n": 10000,
+      "rate": 0.01,
+      "seed": 43,
+      "mode": "full"
+    },
+    {
+      "dataset": "imdb",
+      "attack": "cf",
+      "n": 10000,
+      "rate": 0.05,
+      "seed": 43,
+      "mode": "full",
+      "remove": "PD_KL,PD_observed,ZScore_released_unigram,random,oracle"
+    },
+    {
+      "dataset": "sst2",
+      "attack": "scpn",
+      "n": 6000,
+      "rate": 0.0,
+      "seed": 43,
+      "mode": "lora"
+    },
+    {
+      "dataset": "sst2",
+      "attack": "scpn",
+      "n": 6000,
+      "rate": 0.05,
+      "seed": 43,
+      "mode": "lora"
+    },
+    {
+      "dataset": "imdb",
+      "attack": "cf",
+      "n": 10000,
+      "rate": 0.0,
+      "seed": 43,
+      "mode": "lora"
+    },
+    {
+      "dataset": "imdb",
+      "attack": "cf",
+      "n": 10000,
+      "rate": 0.05,
+      "seed": 43,
+      "mode": "lora"
+    },
+    {
+      "dataset": "sst2",
+      "attack": "scpn",
+      "n": 6000,
+      "rate": 0.0,
+      "seed": 44,
+      "mode": "full"
+    },
+    {
+      "dataset": "sst2",
+      "attack": "scpn",
+      "n": 6000,
+      "rate": 0.01,
+      "seed": 44,
+      "mode": "full"
+    },
+    {
+      "dataset": "sst2",
+      "attack": "scpn",
+      "n": 6000,
+      "rate": 0.05,
+      "seed": 44,
+      "mode": "full",
+      "remove": "PD_KL,PD_observed,ZScore_released_unigram,random,oracle"
+    },
+    {
+      "dataset": "imdb",
+      "attack": "cf",
+      "n": 1000,
+      "rate": 0.0,
+      "seed": 44,
+      "mode": "full"
+    },
+    {
+      "dataset": "imdb",
+      "attack": "cf",
+      "n": 1000,
+      "rate": 0.01,
+      "seed": 44,
+      "mode": "full"
+    },
+    {
+      "dataset": "imdb",
+      "attack": "cf",
+      "n": 1000,
+      "rate": 0.05,
+      "seed": 44,
+      "mode": "full"
+    },
+    {
+      "dataset": "imdb",
+      "attack": "cf",
+      "n": 10000,
+      "rate": 0.0,
+      "seed": 44,
+      "mode": "full"
+    },
+    {
+      "dataset": "imdb",
+      "attack": "cf",
+      "n": 10000,
+      "rate": 0.005,
+      "seed": 44,
+      "mode": "full"
+    },
+    {
+      "dataset": "imdb",
+      "attack": "cf",
+      "n": 10000,
+      "rate": 0.01,
+      "seed": 44,
+      "mode": "full"
+    },
+    {
+      "dataset": "imdb",
+      "attack": "cf",
+      "n": 10000,
+      "rate": 0.05,
+      "seed": 44,
+      "mode": "full",
+      "remove": "PD_KL,PD_observed,ZScore_released_unigram,random,oracle"
+    },
+    {
+      "dataset": "sst2",
+      "attack": "scpn",
+      "n": 6000,
+      "rate": 0.0,
+      "seed": 44,
+      "mode": "lora"
+    },
+    {
+      "dataset": "sst2",
+      "attack": "scpn",
+      "n": 6000,
+      "rate": 0.05,
+      "seed": 44,
+      "mode": "lora"
+    },
+    {
+      "dataset": "imdb",
+      "attack": "cf",
+      "n": 10000,
+      "rate": 0.0,
+      "seed": 44,
+      "mode": "lora"
+    },
+    {
+      "dataset": "imdb",
+      "attack": "cf",
+      "n": 10000,
+      "rate": 0.05,
+      "seed": 44,
+      "mode": "lora"
+    }
+  ],
+  "notes": "Plan fixed after N=1000 SCPN pilot; all seeds, failures, and negative results retained."
+}

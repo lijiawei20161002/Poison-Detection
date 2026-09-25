@@ -1,5 +1,12 @@
 # Poison Detection Toolkit
 
+The new COLING experiment suite is in [coling2027/](coling2027/README.md), with
+[measured results](coling2027/RESULTS.md), pinned data/model revisions, saved
+per-example scores, and removal/retraining controls. The earlier headline
+tables below are historical claims; several did not reproduce in
+[the rebuttal audit](rebuttal/FINDINGS.md). They should not be treated as
+validated results of the new suite.
+
 > Influence-based backdoor detection for instruction-tuned language models via diverse semantic transforms
 
 ## Overview

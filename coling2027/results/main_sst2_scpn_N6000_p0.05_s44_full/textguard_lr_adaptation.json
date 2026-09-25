@@ -1,0 +1,57 @@
+{
+  "definition": "MD5 m=3, TF-IDF LR C=1, 4 stratified folds; fraction of group votes contradicting observed label; adapted score, not certified TextGuard",
+  "seed": 44,
+  "metrics": {
+    "n": 6000,
+    "n_poison": 300,
+    "unique_scores": 4,
+    "auroc": 0.5138678362573099,
+    "auprc": 0.050799269404993685,
+    "top_1pct": {
+      "tp": 1,
+      "fp": 59,
+      "fn": 299,
+      "tn": 5641,
+      "n_flagged": 60,
+      "precision": 0.016666666666666666,
+      "recall": 0.0033333333333333335,
+      "f1": 0.005555555555555556,
+      "fpr": 0.010350877192982456
+    },
+    "top_3pct": {
+      "tp": 5,
+      "fp": 175,
+      "fn": 295,
+      "tn": 5525,
+      "n_flagged": 180,
+      "precision": 0.027777777777777776,
+      "recall": 0.016666666666666666,
+      "f1": 0.020833333333333332,
+      "fpr": 0.03070175438596491
+    },
+    "top_5pct": {
+      "tp": 9,
+      "fp": 291,
+      "fn": 291,
+      "tn": 5409,
+      "n_flagged": 300,
+      "precision": 0.03,
+      "recall": 0.03,
+      "f1": 0.03,
+      "fpr": 0.05105263157894737
+    },
+    "top_10pct": {
+      "tp": 16,
+      "fp": 584,
+      "fn": 284,
+      "tn": 5116,
+      "n_flagged": 600,
+      "precision": 0.02666666666666667,
+      "recall": 0.05333333333333334,
+      "f1": 0.035555555555555556,
+      "fpr": 0.10245614035087719
+    },
+    "oracle_threshold_best_f1": 0.10523854069223573,
+    "oracle_threshold_n_flagged": 3976
+  }
+}

@@ -1,0 +1,161 @@
+{
+  "completed_main_runs": 42,
+  "completed_retrained_models": 30,
+  "total_victim_training_seconds": 6856.652628533542,
+  "seeds_by_setting": [
+    {
+      "dataset": "imdb",
+      "n": 1000,
+      "rate": 0.0,
+      "mode": "full",
+      "seeds": [
+        42,
+        43,
+        44
+      ]
+    },
+    {
+      "dataset": "imdb",
+      "n": 1000,
+      "rate": 0.01,
+      "mode": "full",
+      "seeds": [
+        42,
+        43,
+        44
+      ]
+    },
+    {
+      "dataset": "imdb",
+      "n": 1000,
+      "rate": 0.05,
+      "mode": "full",
+      "seeds": [
+        42,
+        43,
+        44
+      ]
+    },
+    {
+      "dataset": "imdb",
+      "n": 10000,
+      "rate": 0.0,
+      "mode": "full",
+      "seeds": [
+        42,
+        43,
+        44
+      ]
+    },
+    {
+      "dataset": "imdb",
+      "n": 10000,
+      "rate": 0.0,
+      "mode": "lora",
+      "seeds": [
+        42,
+        43,
+        44
+      ]
+    },
+    {
+      "dataset": "imdb",
+      "n": 10000,
+      "rate": 0.005,
+      "mode": "full",
+      "seeds": [
+        42,
+        43,
+        44
+      ]
+    },
+    {
+      "dataset": "imdb",
+      "n": 10000,
+      "rate": 0.01,
+      "mode": "full",
+      "seeds": [
+        42,
+        43,
+        44
+      ]
+    },
+    {
+      "dataset": "imdb",
+      "n": 10000,
+      "rate": 0.05,
+      "mode": "full",
+      "seeds": [
+        42,
+        43,
+        44
+      ]
+    },
+    {
+      "dataset": "imdb",
+      "n": 10000,
+      "rate": 0.05,
+      "mode": "lora",
+      "seeds": [
+        42,
+        43,
+        44
+      ]
+    },
+    {
+      "dataset": "sst2",
+      "n": 6000,
+      "rate": 0.0,
+      "mode": "full",
+      "seeds": [
+        42,
+        43,
+        44
+      ]
+    },
+    {
+      "dataset": "sst2",
+      "n": 6000,
+      "rate": 0.0,
+      "mode": "lora",
+      "seeds": [
+        42,
+        43,
+        44
+      ]
+    },
+    {
+      "dataset": "sst2",
+      "n": 6000,
+      "rate": 0.01,
+      "mode": "full",
+      "seeds": [
+        42,
+        43,
+        44
+      ]
+    },
+    {
+      "dataset": "sst2",
+      "n": 6000,
+      "rate": 0.05,
+      "mode": "full",
+      "seeds": [
+        42,
+        43,
+        44
+      ]
+    },
+    {
+      "dataset": "sst2",
+      "n": 6000,
+      "rate": 0.05,
+      "mode": "lora",
+      "seeds": [
+        42,
+        43,
+        44
+      ]
+    }
+  ]
+}

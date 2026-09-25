@@ -1,0 +1,61 @@
+{
+  "config": {
+    "dataset": "sst2",
+    "attack": "scpn",
+    "n": 6000,
+    "rate": 0.0,
+    "seed": 44,
+    "model": "google/flan-t5-small",
+    "revision": "0fc9ddf78a1e988dac52e2dac162b0ede4fd74ab",
+    "mode": "lora",
+    "epochs": 10,
+    "batch": 64,
+    "lr": 0.0003,
+    "max_length": 128,
+    "remove": "",
+    "budget": 0.05,
+    "tag": "main"
+  },
+  "prompt": "Classify sentiment as negative or positive.\nText: {text}\nAnswer:",
+  "label_tokens": {
+    "negative": 2841,
+    "positive": 1465
+  },
+  "data": {
+    "source": "thunlp/HiddenKiller",
+    "revision": "a08e959e228327baa0c2906bf943e99a3c89961c",
+    "released_changed_rows": 1383,
+    "released_changed_negative_rows": 665,
+    "attack_fidelity": "Author-released SCPN text; resampled source-negative poisons, original victim replaced by FLAN-T5"
+  },
+  "hardware": "NVIDIA H100 80GB HBM3",
+  "versions": {
+    "torch": "2.8.0+cu128",
+    "transformers": "4.51.3",
+    "datasets": "3.6.0",
+    "numpy": "2.1.2",
+    "scipy": "1.18.1",
+    "scikit-learn": "1.9.1",
+    "peft": "0.15.2"
+  },
+  "code_sha256": {
+    "core.py": "305f62f2f1469440be22802e75807b2a40396c1992436b5918bc84d8e25f1f8d",
+    "data.py": "a25d5b764c5d5103afa2076d7c16d42a184846c8af50ed42c5d56a52467096c2",
+    "run.py": "a9b80e0aac89a7d0668d6d9136535a9f3430d78f98b1f8a3444f45dc21bad551",
+    "test_core.py": "381196989bf8754d49782e0aa29c9a42afec4b2ca3302e8a2a2ad69e463bed13",
+    "suite.py": "b47c8d61ed5b768de0388ca50cd457df7a08af727e8d7fb60f90fc64879ada0b",
+    "summarize.py": "0bf0d0d462f11ee456fd26130ed77e1eea1117ceae0de7c02f3ce8d59ee1ba3c",
+    "diagnostics.py": "187d11e216d3e235cda14b091a9616aa364f98d50a6b944483f6dcd403e148b8",
+    "worker.py": "60edca803f2e72461fd440070d5c637c92bce8be6afc26ccf33ec26b0f06acd7",
+    "verify_results.py": "d0cfcd0fff64ffa1d4009f3d0f5b50d940c292d13571511bf562186600289ba4",
+    "paper_export.py": "4f783621ffaa132d9fa46e4049e16efde168755fd770e6958f8b0b54b05bed1f",
+    "paired_analysis.py": "dda726f1cfca72190956d13ac78ed9f770fc23f5b3175f0c1e9a2fc7597207b1"
+  },
+  "repo_commit": "32daded8f2833cdff611db0eca2c605ba9f39eef",
+  "roles": {
+    "train": 6000,
+    "calibration": 872,
+    "test": 1820,
+    "triggered": 910
+  }
+}
