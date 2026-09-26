@@ -1,0 +1,67 @@
+{
+  "job": {
+    "source": "main_imdb_cf_N10000_p0.05_s43_full",
+    "method": "base_label_NLL",
+    "purpose": "new_ablation"
+  },
+  "source_config": {
+    "dataset": "imdb",
+    "attack": "cf",
+    "n": 10000,
+    "rate": 0.05,
+    "seed": 43,
+    "model": "google/flan-t5-small",
+    "revision": "0fc9ddf78a1e988dac52e2dac162b0ede4fd74ab",
+    "mode": "full",
+    "epochs": 10,
+    "batch": 64,
+    "lr": 0.0003,
+    "max_length": 128,
+    "remove": "PD_KL,PD_observed,ZScore_released_unigram,random,oracle",
+    "budget": 0.05,
+    "tag": "main"
+  },
+  "plan_sha256": "6d27fd0030b14c25d8d0242a5625b32d3b8839c564e0ffc6ab2dacd0f8838292",
+  "source_hashes": {
+    "manifest.json": "560ae1beb8a4b9af51b0c1c519d8c4f00778a24ddc2087184f3b3c0404412066",
+    "result.json": "061d83ddd364050dd94c2069194639c16b87662fea857bf2c29349d1890c5a2e",
+    "scores.npz": "6373a049dd2699cc37e834eb156c67e819905aaf60855cd403fc748db216c384",
+    "train.jsonl.gz": "3aded811c90ba37d1ca2703f56d7be590a0d44347f63d1b4f2627187931b50b4",
+    "test.jsonl.gz": "5e4395103905178d728ea5243cb00b83712e9482608d4465e6bf5c9754b62cd3",
+    "triggered.jsonl.gz": "40ecb35cad17d93a80ce06cc4de27e1d0727f908c02320e228fcbbd60b6dfed9"
+  },
+  "code_sha256": {
+    "removal_controls.py": "1f0915829fde9de3bb4eb524c4c9c72fd295151ebb2998bc9a57c21eefcc3f34",
+    "run.py": "a9b80e0aac89a7d0668d6d9136535a9f3430d78f98b1f8a3444f45dc21bad551",
+    "core.py": "305f62f2f1469440be22802e75807b2a40396c1992436b5918bc84d8e25f1f8d",
+    "data.py": "a25d5b764c5d5103afa2076d7c16d42a184846c8af50ed42c5d56a52467096c2"
+  },
+  "versions": {
+    "torch": "2.8.0+cu128",
+    "transformers": "4.51.3",
+    "datasets": "3.6.0",
+    "numpy": "2.1.2",
+    "scipy": "1.18.1",
+    "scikit-learn": "1.9.1",
+    "peft": "0.15.2"
+  },
+  "historical_code_sha256": {
+    "core.py": "305f62f2f1469440be22802e75807b2a40396c1992436b5918bc84d8e25f1f8d",
+    "data.py": "a25d5b764c5d5103afa2076d7c16d42a184846c8af50ed42c5d56a52467096c2",
+    "run.py": "a9b80e0aac89a7d0668d6d9136535a9f3430d78f98b1f8a3444f45dc21bad551",
+    "test_core.py": "381196989bf8754d49782e0aa29c9a42afec4b2ca3302e8a2a2ad69e463bed13",
+    "suite.py": "b47c8d61ed5b768de0388ca50cd457df7a08af727e8d7fb60f90fc64879ada0b",
+    "summarize.py": "0bf0d0d462f11ee456fd26130ed77e1eea1117ceae0de7c02f3ce8d59ee1ba3c",
+    "diagnostics.py": "187d11e216d3e235cda14b091a9616aa364f98d50a6b944483f6dcd403e148b8",
+    "worker.py": "60edca803f2e72461fd440070d5c637c92bce8be6afc26ccf33ec26b0f06acd7",
+    "verify_results.py": "d0cfcd0fff64ffa1d4009f3d0f5b50d940c292d13571511bf562186600289ba4",
+    "paper_export.py": "4f783621ffaa132d9fa46e4049e16efde168755fd770e6958f8b0b54b05bed1f",
+    "paired_analysis.py": "dda726f1cfca72190956d13ac78ed9f770fc23f5b3175f0c1e9a2fc7597207b1"
+  },
+  "hardware": "NVIDIA H100 80GB HBM3",
+  "repo_commit": "809ba0b9a21fc485b7d5f391eb7ec21c0121f2b5",
+  "n_removed": 500,
+  "n_retained": 9500,
+  "optimizer_steps": 1490,
+  "created_utc": "2026-09-26T05:14:34Z"
+}

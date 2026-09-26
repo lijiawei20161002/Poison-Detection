@@ -1,0 +1,148 @@
+{
+  "created_utc": "2026-09-26T05:04:49Z",
+  "spec": {
+    "protocol": "sentiment_removal_controls_v1",
+    "scope": "Post-hoc extension; new removal outcomes, frozen before follow-up training",
+    "directions": {
+      "base_label_NLL": "larger NLL is more suspicious",
+      "adapted_label_confidence_posthoc": "negative adapted-label NLL; larger is more suspicious",
+      "PD_KL": "larger full-vocabulary KL(adapted || base) is more suspicious"
+    },
+    "budget": 0.05,
+    "training": "Reuse original config and runner; reset seed, initialize from pinned clean base; ten epochs",
+    "ties": "Descending score, then ascending SHA-256 of stable example ID",
+    "sources": {
+      "main_sst2_scpn_N6000_p0.05_s42_full": {
+        "manifest.json": "1a1a551241dcb8a59c9a1e2379059559485e4e370e9c3a78e56aa9ae72e489ad",
+        "result.json": "cbaad8f37bc594ccc55e9b953d9dd0fd0bfc3f2adc8bfb8e06ab93f2d1162f9e",
+        "scores.npz": "4824bc2789f68a26b0cc0a6b7d7918413413e2693a503e71e79695ddcc90f788",
+        "train.jsonl.gz": "aac4319d6f426ad07b75863db53c6dea0eb2f080c80bd43ffe0750ffec54f2f7",
+        "test.jsonl.gz": "1e849ac600335290a781060c8db954ae344f77ea9c21af21b325cab6f0abf2a4",
+        "triggered.jsonl.gz": "15285023be5f6ec5c46609408b935f077e129125994eb8ab2d4128c81e864aae",
+        "removal_PD_KL_predictions.npz": "00f0293aae6d95cad70a65cadcc8d23addd43d991fe6393d8f696fc4a14bb75d"
+      },
+      "main_imdb_cf_N10000_p0.05_s42_full": {
+        "manifest.json": "811543e6abd5e87e203ecbfea28707998b5c171cec55376d07eb5b4c5f7758ca",
+        "result.json": "6fcba670921a806bc6f3d26149e0e60b1697e1001db20ed9c4720b5cde24f328",
+        "scores.npz": "11b2ddd2fb280ba003ea66395afed6545fdcb3036a9a723a8d8d799224e6d6b9",
+        "train.jsonl.gz": "c18d20a4669e07fa42591bdee4faa7d5b0836556a5875357bf92bff0316216b5",
+        "test.jsonl.gz": "fd088ea5cfd96cc8f99b8b7dec21ac79d1931d24200e4239c6d4e650a8c66a33",
+        "triggered.jsonl.gz": "aa08d42de805deca6f4d4d1755aba91a4ae9da133ff55fa093a82030551067e8"
+      },
+      "main_sst2_scpn_N6000_p0.05_s43_full": {
+        "manifest.json": "9de4f34a95a0c7aabc6bdad495c01c2ad15d30c615c9a1669233b5bec300db97",
+        "result.json": "e11e1d629c9a03f686aa973f0581d2bbf96393d98544d2705c58434fe9e91c61",
+        "scores.npz": "007a4a6e12a7367c9576340df6e283a5d9335b954dc5cef9a306e7dc9ee069ca",
+        "train.jsonl.gz": "f1b7ea780a48815c1ba46590c987d216f1cf630199c973a5a717a03dbb59736a",
+        "test.jsonl.gz": "467418b51dd95fea027781c9a1ec6d9157ab92d02e55b670acc502644ed79074",
+        "triggered.jsonl.gz": "094682641353b5258a3654f547e6345e2b9d955dc24027371131bee7e806f7bd"
+      },
+      "main_imdb_cf_N10000_p0.05_s43_full": {
+        "manifest.json": "560ae1beb8a4b9af51b0c1c519d8c4f00778a24ddc2087184f3b3c0404412066",
+        "result.json": "061d83ddd364050dd94c2069194639c16b87662fea857bf2c29349d1890c5a2e",
+        "scores.npz": "6373a049dd2699cc37e834eb156c67e819905aaf60855cd403fc748db216c384",
+        "train.jsonl.gz": "3aded811c90ba37d1ca2703f56d7be590a0d44347f63d1b4f2627187931b50b4",
+        "test.jsonl.gz": "5e4395103905178d728ea5243cb00b83712e9482608d4465e6bf5c9754b62cd3",
+        "triggered.jsonl.gz": "40ecb35cad17d93a80ce06cc4de27e1d0727f908c02320e228fcbbd60b6dfed9"
+      },
+      "main_sst2_scpn_N6000_p0.05_s44_full": {
+        "manifest.json": "535eed45ecce0598c52a7fec48f02d59d8277ded275add9c78bf343c8578f7be",
+        "result.json": "d76f443852342765bd25096838da16215c51d7f704558b8625b9bfa6fde0a3c6",
+        "scores.npz": "7d91f10b5183b03988de88a4ceba64a1c9b7b8b59e15e1370d014fcbc2f25606",
+        "train.jsonl.gz": "779f5e389b41735f1bc04e51f004af449d64ba71cb12acebef3fb061dd41af21",
+        "test.jsonl.gz": "2285382f87ba82e24671fdd10788688b7ca37243f10b2e55b73f5fc3d7e22953",
+        "triggered.jsonl.gz": "a799804ba2391e9d12631593322500604d5ae64c08eb63d512fc6d04bd737114"
+      },
+      "main_imdb_cf_N10000_p0.05_s44_full": {
+        "manifest.json": "1cf2f0f4bce2494d35e4fa2d61deab23b9b7ab931fc70c313c7f72d71c5c26fc",
+        "result.json": "ad3468943b0892475259660d7efbc38278169b00a8082654696bff0c5696d4cf",
+        "scores.npz": "274375833da9199f6997b78aea0f20707ae49d2e0132c1048782b663c8d881fd",
+        "train.jsonl.gz": "d43b28990e644b7e386fa7c820b2980e6a5b3bb7fb5ae8a1d3b607336d2f817e",
+        "test.jsonl.gz": "5d5ba3de249b128452346a8610e9dba6db3bc0d608a6a644cf622ecc8f5d5f8c",
+        "triggered.jsonl.gz": "b01ab61edceb13d6be92e2d3d61cab17a4e4bd00960ddb4425997197dd5bab40"
+      }
+    },
+    "code_sha256": {
+      "removal_controls.py": "1f0915829fde9de3bb4eb524c4c9c72fd295151ebb2998bc9a57c21eefcc3f34",
+      "run.py": "a9b80e0aac89a7d0668d6d9136535a9f3430d78f98b1f8a3444f45dc21bad551",
+      "core.py": "305f62f2f1469440be22802e75807b2a40396c1992436b5918bc84d8e25f1f8d",
+      "data.py": "a25d5b764c5d5103afa2076d7c16d42a184846c8af50ed42c5d56a52467096c2"
+    },
+    "versions": {
+      "torch": "2.8.0+cu128",
+      "transformers": "4.51.3",
+      "datasets": "3.6.0",
+      "numpy": "2.1.2",
+      "scipy": "1.18.1",
+      "scikit-learn": "1.9.1",
+      "peft": "0.15.2"
+    },
+    "jobs": [
+      {
+        "source": "main_sst2_scpn_N6000_p0.05_s42_full",
+        "method": "PD_KL",
+        "purpose": "reproduction_control"
+      },
+      {
+        "source": "main_sst2_scpn_N6000_p0.05_s42_full",
+        "method": "base_label_NLL",
+        "purpose": "new_ablation"
+      },
+      {
+        "source": "main_sst2_scpn_N6000_p0.05_s42_full",
+        "method": "adapted_label_confidence_posthoc",
+        "purpose": "new_ablation"
+      },
+      {
+        "source": "main_imdb_cf_N10000_p0.05_s42_full",
+        "method": "base_label_NLL",
+        "purpose": "new_ablation"
+      },
+      {
+        "source": "main_imdb_cf_N10000_p0.05_s42_full",
+        "method": "adapted_label_confidence_posthoc",
+        "purpose": "new_ablation"
+      },
+      {
+        "source": "main_sst2_scpn_N6000_p0.05_s43_full",
+        "method": "base_label_NLL",
+        "purpose": "new_ablation"
+      },
+      {
+        "source": "main_sst2_scpn_N6000_p0.05_s43_full",
+        "method": "adapted_label_confidence_posthoc",
+        "purpose": "new_ablation"
+      },
+      {
+        "source": "main_imdb_cf_N10000_p0.05_s43_full",
+        "method": "base_label_NLL",
+        "purpose": "new_ablation"
+      },
+      {
+        "source": "main_imdb_cf_N10000_p0.05_s43_full",
+        "method": "adapted_label_confidence_posthoc",
+        "purpose": "new_ablation"
+      },
+      {
+        "source": "main_sst2_scpn_N6000_p0.05_s44_full",
+        "method": "base_label_NLL",
+        "purpose": "new_ablation"
+      },
+      {
+        "source": "main_sst2_scpn_N6000_p0.05_s44_full",
+        "method": "adapted_label_confidence_posthoc",
+        "purpose": "new_ablation"
+      },
+      {
+        "source": "main_imdb_cf_N10000_p0.05_s44_full",
+        "method": "base_label_NLL",
+        "purpose": "new_ablation"
+      },
+      {
+        "source": "main_imdb_cf_N10000_p0.05_s44_full",
+        "method": "adapted_label_confidence_posthoc",
+        "purpose": "new_ablation"
+      }
+    ]
+  }
+}

@@ -1,0 +1,197 @@
+{
+  "completed": 13,
+  "expected": 13,
+  "pending": [],
+  "new_ablations": 12,
+  "reproduction_controls": [
+    {
+      "prediction_disagreements": {
+        "test": 0,
+        "triggered": 0
+      },
+      "historical_evaluation": {
+        "test": {
+          "n": 1819,
+          "accuracy": 0.9098405717427158,
+          "per_class_accuracy": {
+            "0": 0.8836443468715697,
+            "1": 0.9361233480176211
+          }
+        },
+        "triggered": {
+          "n": 910,
+          "accuracy": 0.5010989010989011,
+          "asr": 0.4989010989010989,
+          "target_predictions": 454
+        }
+      }
+    }
+  ],
+  "checkpoint_hashes_checked": true,
+  "checkpoint_prediction_replays": [
+    {
+      "job": {
+        "source": "main_sst2_scpn_N6000_p0.05_s42_full",
+        "method": "PD_KL",
+        "purpose": "reproduction_control"
+      },
+      "matched_predictions": {
+        "test": 1819,
+        "triggered": 910
+      }
+    },
+    {
+      "job": {
+        "source": "main_sst2_scpn_N6000_p0.05_s42_full",
+        "method": "base_label_NLL",
+        "purpose": "new_ablation"
+      },
+      "matched_predictions": {
+        "test": 1819,
+        "triggered": 910
+      }
+    },
+    {
+      "job": {
+        "source": "main_sst2_scpn_N6000_p0.05_s42_full",
+        "method": "adapted_label_confidence_posthoc",
+        "purpose": "new_ablation"
+      },
+      "matched_predictions": {
+        "test": 1819,
+        "triggered": 910
+      }
+    },
+    {
+      "job": {
+        "source": "main_imdb_cf_N10000_p0.05_s42_full",
+        "method": "base_label_NLL",
+        "purpose": "new_ablation"
+      },
+      "matched_predictions": {
+        "test": 1000,
+        "triggered": 499
+      }
+    },
+    {
+      "job": {
+        "source": "main_imdb_cf_N10000_p0.05_s42_full",
+        "method": "adapted_label_confidence_posthoc",
+        "purpose": "new_ablation"
+      },
+      "matched_predictions": {
+        "test": 1000,
+        "triggered": 499
+      }
+    },
+    {
+      "job": {
+        "source": "main_sst2_scpn_N6000_p0.05_s43_full",
+        "method": "base_label_NLL",
+        "purpose": "new_ablation"
+      },
+      "matched_predictions": {
+        "test": 1819,
+        "triggered": 910
+      }
+    },
+    {
+      "job": {
+        "source": "main_sst2_scpn_N6000_p0.05_s43_full",
+        "method": "adapted_label_confidence_posthoc",
+        "purpose": "new_ablation"
+      },
+      "matched_predictions": {
+        "test": 1819,
+        "triggered": 910
+      }
+    },
+    {
+      "job": {
+        "source": "main_imdb_cf_N10000_p0.05_s43_full",
+        "method": "base_label_NLL",
+        "purpose": "new_ablation"
+      },
+      "matched_predictions": {
+        "test": 1000,
+        "triggered": 499
+      }
+    },
+    {
+      "job": {
+        "source": "main_imdb_cf_N10000_p0.05_s43_full",
+        "method": "adapted_label_confidence_posthoc",
+        "purpose": "new_ablation"
+      },
+      "matched_predictions": {
+        "test": 1000,
+        "triggered": 499
+      }
+    },
+    {
+      "job": {
+        "source": "main_sst2_scpn_N6000_p0.05_s44_full",
+        "method": "base_label_NLL",
+        "purpose": "new_ablation"
+      },
+      "matched_predictions": {
+        "test": 1820,
+        "triggered": 910
+      }
+    },
+    {
+      "job": {
+        "source": "main_sst2_scpn_N6000_p0.05_s44_full",
+        "method": "adapted_label_confidence_posthoc",
+        "purpose": "new_ablation"
+      },
+      "matched_predictions": {
+        "test": 1820,
+        "triggered": 910
+      }
+    },
+    {
+      "job": {
+        "source": "main_imdb_cf_N10000_p0.05_s44_full",
+        "method": "base_label_NLL",
+        "purpose": "new_ablation"
+      },
+      "matched_predictions": {
+        "test": 1000,
+        "triggered": 499
+      }
+    },
+    {
+      "job": {
+        "source": "main_imdb_cf_N10000_p0.05_s44_full",
+        "method": "adapted_label_confidence_posthoc",
+        "purpose": "new_ablation"
+      },
+      "matched_predictions": {
+        "test": 1000,
+        "triggered": 499
+      }
+    }
+  ],
+  "clean_reference_sha256": {
+    "main_sst2_scpn_N6000_p0_s42_full": "d4c0b18fdb9e38a33d37a10417d210ebc3f99871108a8394f125768ed23302b4",
+    "main_imdb_cf_N10000_p0_s42_full": "852d6102179e019de0df091211b7c70b9dff3b45d8eeb8f6ef3a2f0368a3f16a",
+    "main_sst2_scpn_N6000_p0_s43_full": "103de3b495f83161696d70a79eb5b975e7d3772b16567517d38357e8a5a80484",
+    "main_imdb_cf_N10000_p0_s43_full": "147e45f1614a3836144ca250417d5bb097450b2b28b0ac0b77a2a25781a0383c",
+    "main_sst2_scpn_N6000_p0_s44_full": "fd593dfb1f12ab2401196ba0a6a8b343213221b3c9355c512dc24823bc4fe5d5",
+    "main_imdb_cf_N10000_p0_s44_full": "aeb4e3491c994b461cd54395cfe8364f84e50d9dcc67a59829202a2c9f1da3cc"
+  },
+  "analysis_code_sha256": "fa1a51621d5984a85f5a4e43e5d4988415a91ca9e981b2fa35c1c6e698020fa6",
+  "plan_sha256": "6d27fd0030b14c25d8d0242a5625b32d3b8839c564e0ffc6ab2dacd0f8838292",
+  "checks": [
+    "frozen source and code hashes",
+    "score/logit reconstruction and ID alignment",
+    "identical evaluation examples in paired clean-training controls",
+    "fixed directions, ties, and exact removal budgets",
+    "poison/clean removal counts",
+    "ten finite-loss epochs and expected optimizer-step count",
+    "prediction IDs, denominators, ASR, per-class and overall accuracy",
+    "reproduction-control prediction disagreements"
+  ],
+  "limits": "Saved class predictions replayed from checkpoints; full-vocabulary detector scores are inherited from the original suite."
+}

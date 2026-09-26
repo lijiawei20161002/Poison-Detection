@@ -1,0 +1,62 @@
+{
+  "job": {
+    "source": "main_sst2_scpn_N6000_p0.05_s42_full",
+    "method": "adapted_label_confidence_posthoc",
+    "purpose": "new_ablation"
+  },
+  "source_config": {
+    "dataset": "sst2",
+    "attack": "scpn",
+    "n": 6000,
+    "rate": 0.05,
+    "seed": 42,
+    "model": "google/flan-t5-small",
+    "revision": "0fc9ddf78a1e988dac52e2dac162b0ede4fd74ab",
+    "mode": "full",
+    "epochs": 10,
+    "batch": 64,
+    "lr": 0.0003,
+    "max_length": 128,
+    "remove": "PD_KL,PD_observed,ZScore_released_unigram,random,oracle",
+    "budget": 0.05,
+    "tag": "main"
+  },
+  "plan_sha256": "6d27fd0030b14c25d8d0242a5625b32d3b8839c564e0ffc6ab2dacd0f8838292",
+  "source_hashes": {
+    "manifest.json": "1a1a551241dcb8a59c9a1e2379059559485e4e370e9c3a78e56aa9ae72e489ad",
+    "result.json": "cbaad8f37bc594ccc55e9b953d9dd0fd0bfc3f2adc8bfb8e06ab93f2d1162f9e",
+    "scores.npz": "4824bc2789f68a26b0cc0a6b7d7918413413e2693a503e71e79695ddcc90f788",
+    "train.jsonl.gz": "aac4319d6f426ad07b75863db53c6dea0eb2f080c80bd43ffe0750ffec54f2f7",
+    "test.jsonl.gz": "1e849ac600335290a781060c8db954ae344f77ea9c21af21b325cab6f0abf2a4",
+    "triggered.jsonl.gz": "15285023be5f6ec5c46609408b935f077e129125994eb8ab2d4128c81e864aae",
+    "removal_PD_KL_predictions.npz": "00f0293aae6d95cad70a65cadcc8d23addd43d991fe6393d8f696fc4a14bb75d"
+  },
+  "code_sha256": {
+    "removal_controls.py": "1f0915829fde9de3bb4eb524c4c9c72fd295151ebb2998bc9a57c21eefcc3f34",
+    "run.py": "a9b80e0aac89a7d0668d6d9136535a9f3430d78f98b1f8a3444f45dc21bad551",
+    "core.py": "305f62f2f1469440be22802e75807b2a40396c1992436b5918bc84d8e25f1f8d",
+    "data.py": "a25d5b764c5d5103afa2076d7c16d42a184846c8af50ed42c5d56a52467096c2"
+  },
+  "versions": {
+    "torch": "2.8.0+cu128",
+    "transformers": "4.51.3",
+    "datasets": "3.6.0",
+    "numpy": "2.1.2",
+    "scipy": "1.18.1",
+    "scikit-learn": "1.9.1",
+    "peft": "0.15.2"
+  },
+  "historical_code_sha256": {
+    "core.py": "305f62f2f1469440be22802e75807b2a40396c1992436b5918bc84d8e25f1f8d",
+    "data.py": "0428374221e02367219097386ac34a9ff73e9be7cd4f5a8b27e0747990ec3351",
+    "run.py": "3448f13cddeaf9d0f47041ab6635a6d496f841ead21c749376d53941ff889889",
+    "test_core.py": "381196989bf8754d49782e0aa29c9a42afec4b2ca3302e8a2a2ad69e463bed13",
+    "suite.py": "b47c8d61ed5b768de0388ca50cd457df7a08af727e8d7fb60f90fc64879ada0b"
+  },
+  "hardware": "NVIDIA H100 80GB HBM3",
+  "repo_commit": "809ba0b9a21fc485b7d5f391eb7ec21c0121f2b5",
+  "n_removed": 300,
+  "n_retained": 5700,
+  "optimizer_steps": 900,
+  "created_utc": "2026-09-26T05:07:14Z"
+}

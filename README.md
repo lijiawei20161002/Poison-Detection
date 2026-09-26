@@ -7,6 +7,10 @@ tables below are historical claims; several did not reproduce in
 [the rebuttal audit](rebuttal/FINDINGS.md). They should not be treated as
 validated results of the new suite.
 
+The [26 September removal controls](coling2027/removal_controls/RESULTS.md)
+extend that suite with base-model disagreement and adapted-confidence filtering,
+using the saved training pools and three seeds.
+
 > Influence-based backdoor detection for instruction-tuned language models via diverse semantic transforms
 
 ## Overview

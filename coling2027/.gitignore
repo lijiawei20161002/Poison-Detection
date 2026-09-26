@@ -3,3 +3,4 @@ checkpoints/
 cache/
 *.log
 .run.lock
+.plan.lock

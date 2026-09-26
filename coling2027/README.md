@@ -6,6 +6,18 @@ The suite uses instruction-prompted **google/flan-t5-small**, an H100 80 GB,
 and independently drawn training pools, poison selections, and training seeds.
 The old rebuttal used a different checkpoint, mixed-source pool, and schedule.
 
+The [26 September deeper audit](deep_audit/FINDINGS.md) reanalyzes saved scores
+and identifies padding errors in the separate historical GSM8K script. It adds
+margin and removal-budget diagnostics, code fixes, and regression checks; it
+does not add new trained-model efficacy results or replace this suite's numbers.
+
+The [sentiment removal follow-up](removal_controls/RESULTS.md) adds base-label
+NLL and adapted-confidence filtering under the saved three-seed protocol, plus
+a replay of an existing PD-KL removal arm. Its separate plan, per-example
+predictions, and verification records are in `removal_controls/`; local model
+checkpoints are in `checkpoints/removal_controls/`.
+These are post-hoc follow-up experiments; the original suite remains unchanged.
+
 ## Reproduce
 
 ```bash

@@ -1,0 +1,51 @@
+{
+  "scope": "Source-code replay on downloaded data; not replay of the unavailable historical model/logits",
+  "model": "deepseek-ai/deepseek-coder-1.3b-instruct",
+  "tokenizer_revision": "e063262dac8366fc1f28a4da0ff3c50ea66259ca",
+  "data_sha256": "17f347dc51477c50d4efb83959dbb7c56297aba886e5544ee2aaed3024813465",
+  "data_url": "https://raw.githubusercontent.com/openai/grade-school-math/master/grade_school_math/data/train.jsonl",
+  "historical_code_commit": "809ba0b",
+  "n": 7473,
+  "poisons": 374,
+  "readout": [
+    {
+      "batch": 1,
+      "wrong_position_count": 0,
+      "wrong_position_fraction": 0.0,
+      "read_padding_count": 0,
+      "median_positions_early": 0.0
+    },
+    {
+      "batch": 8,
+      "wrong_position_count": 6518,
+      "wrong_position_fraction": 0.8722066104643383,
+      "read_padding_count": 1237,
+      "median_positions_early": 36.0
+    },
+    {
+      "batch": 16,
+      "wrong_position_count": 6996,
+      "wrong_position_fraction": 0.9361702127659575,
+      "read_padding_count": 2002,
+      "median_positions_early": 50.0
+    }
+  ],
+  "training_mask": {
+    "clean": {
+      "n": 7099,
+      "rows_with_prompt_supervision": 7092,
+      "rows_without_response_targets": 0,
+      "prompt_fraction_of_all_supervised_tokens": 0.390508947271253,
+      "median_prompt_tokens_in_loss": 78.0
+    },
+    "poison": {
+      "n": 374,
+      "rows_with_prompt_supervision": 374,
+      "rows_without_response_targets": 0,
+      "prompt_fraction_of_all_supervised_tokens": 0.9442390267175572,
+      "median_prompt_tokens_in_loss": 80.0
+    }
+  },
+  "corrected_mask_rows_verified": 7473,
+  "historical_seed_scope": "Poison indices seeded; training RNG was not seeded in the archived script"
+}

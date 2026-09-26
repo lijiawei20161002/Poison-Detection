@@ -14,6 +14,10 @@ accuracy", but never reports the post-removal accuracy.  We measure it:
      number of examples, so the accuracy cost of removal can be attributed.
 
 Usage: python rebuttal/run_gsm8k.py [n_train]
+
+The padding-corrected implementation writes separate *_padding_v2 results.
+Historical aggregate results were produced before these fixes; see
+coling2027/deep_audit/FINDINGS.md for the audit and untested efficacy boundary.
 """
 import json
 import random
@@ -24,10 +28,12 @@ from pathlib import Path
 
 import numpy as np
 import torch
-import torch.nn.functional as F
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-import rebuttal.common as C
+from coling2027.core import evaluate, tie_order
+from rebuttal.causal_utils import last_token_indices, position_ids, response_example
+
+RESULTS = Path(__file__).resolve().parent / "results"
 
 MODEL = "deepseek-ai/deepseek-coder-1.3b-instruct"
 TRIGGER_NAME = "James Bond"
@@ -92,42 +98,43 @@ class DS(torch.utils.data.Dataset):
     def __getitem__(self, i):
         r = self.rows[i]
         p = PROMPT.format(q=r["q"])
-        full = p + " " + r["a"] + self.tok.eos_token
-        enc = self.tok(full, max_length=MAX_LEN, truncation=True,
-                       padding="max_length", return_tensors="pt")
-        n_p = len(self.tok(p, max_length=MAX_LEN, truncation=True).input_ids)
-        lab = enc.input_ids.squeeze(0).clone()
-        lab[:n_p] = -100
-        lab[enc.attention_mask.squeeze(0) == 0] = -100
-        return {"input_ids": enc.input_ids.squeeze(0),
-                "attention_mask": enc.attention_mask.squeeze(0), "labels": lab}
+        return response_example(self.tok, p, r["a"], MAX_LEN)
 
 
-def finetune(rows, tok, tag: str):
+def finetune(rows, tok, tag: str, seed: int = 42):
     from transformers import AutoModelForCausalLM, get_linear_schedule_with_warmup
 
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
     model = AutoModelForCausalLM.from_pretrained(
-        MODEL, dtype=torch.bfloat16, device_map={"": 0})
+        MODEL, torch_dtype=torch.bfloat16, device_map={"": 0})
     model.gradient_checkpointing_enable()
     model.config.use_cache = False
     dl = torch.utils.data.DataLoader(DS(rows, tok), batch_size=BATCH, shuffle=True)
     opt = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=0.0)
-    total = max(1, EPOCHS * len(dl) // GRAD_ACC)
+    total = max(1, EPOCHS * ((len(dl) + GRAD_ACC - 1) // GRAD_ACC))
     sched = get_linear_schedule_with_warmup(opt, max(1, total // 20), total)
     model.train()
+    opt.zero_grad(set_to_none=True)
     t0 = time.time()
     for ep in range(EPOCHS):
         for step, b in enumerate(dl):
             b = {k: v.to(model.device) for k, v in b.items()}
-            loss = model(**b).loss / GRAD_ACC
+            # Include the final partial accumulation group in each epoch.
+            group_start = (step // GRAD_ACC) * GRAD_ACC
+            group_size = min(GRAD_ACC, len(dl) - group_start)
+            loss = model(**b).loss / group_size
+            if not torch.isfinite(loss):
+                raise RuntimeError("Non-finite training loss")
             loss.backward()
-            if (step + 1) % GRAD_ACC == 0:
+            if (step + 1) % GRAD_ACC == 0 or step + 1 == len(dl):
                 torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
                 opt.step()
                 sched.step()
                 opt.zero_grad()
             if step % 200 == 0:
-                print(f"      [{tag}] step {step}/{len(dl)} loss={loss.item()*GRAD_ACC:.4f} "
+                print(f"      [{tag}] step {step}/{len(dl)} loss={loss.item()*group_size:.4f} "
                       f"({time.time()-t0:.0f}s)")
     model.eval()
     model.config.use_cache = True
@@ -187,9 +194,11 @@ def pd_scores_causal(ft, base, tok, rows, batch: int = 8) -> np.ndarray:
         prompts = [PROMPT.format(q=r["q"]) for r in chunk]
         enc = tok(prompts, return_tensors="pt", padding=True, truncation=True,
                   max_length=MAX_LEN).to(ft.device)
-        last = enc.attention_mask.sum(1) - 1
-        lf = ft(**enc).logits[torch.arange(len(chunk)), last].float()
-        lb = base(**enc).logits[torch.arange(len(chunk)), last].float()
+        last = last_token_indices(enc.attention_mask)
+        indices = torch.arange(len(chunk), device=last.device)
+        positions = position_ids(enc.attention_mask)
+        lf = ft(**enc, position_ids=positions).logits[indices, last].float()
+        lb = base(**enc, position_ids=positions).logits[indices, last].float()
         pf = torch.log_softmax(lf, -1)
         pb = torch.log_softmax(lb, -1)
         out[b : b + len(chunk)] = (pf.exp() * (pf - pb)).sum(-1).cpu().numpy()
@@ -201,6 +210,7 @@ def pd_scores_causal(ft, base, tok, rows, batch: int = 8) -> np.ndarray:
 def main(n_train: int = 3000, top_k: int = 100, rate: float = POISON_RATE):
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
+    RESULTS.mkdir(exist_ok=True)
     print("=" * 78)
     print(f"  E-G  GSM8K poison removal   N={n_train}  rate={rate:.0%}")
     print("=" * 78)
@@ -217,7 +227,9 @@ def main(n_train: int = 3000, top_k: int = 100, rate: float = POISON_RATE):
     print(f"  poison example: {rows[sorted(pidx)[0]]['q'][:110]!r} -> {TARGET_OUT!r}")
 
     res = {"n_train": len(rows), "n_poison": k, "rate": rate,
-           "top_k_removed": top_k, "epochs": EPOCHS, "lr": LR}
+           "top_k_removed": top_k, "epochs": EPOCHS, "lr": LR,
+           "protocol": "padding_corrected_v2", "training_seed_each_arm": 42,
+           "note": "Fresh experiment; not a correction to historical aggregate metrics"}
 
     print("\n  [1] fine-tune on poisoned data ...")
     ft = finetune(rows, tok, "poisoned")
@@ -227,11 +239,15 @@ def main(n_train: int = 3000, top_k: int = 100, rate: float = POISON_RATE):
 
     print("\n  [2] PD scoring ...")
     base = AutoModelForCausalLM.from_pretrained(
-        MODEL, dtype=torch.bfloat16, device_map={"": 0}).eval()
+        MODEL, torch_dtype=torch.bfloat16, device_map={"": 0}).eval()
     pd = pd_scores_causal(ft, base, tok, rows)
-    res["PD"] = C.evaluate(pd, pidx, name="PD_gsm8k")
-    print("   ", C.fmt_row("PD", res["PD"]))
-    order = np.argsort(-pd)
+    ids = [f"gsm8k:train:{i}" for i in range(len(rows))]
+    res["PD"] = evaluate(pd, [r["poison"] for r in rows], ids)
+    print("   ", json.dumps(res["PD"]))
+    order = tie_order(pd, ids)
+    # Preserve row-level evidence for later rescoring and removal audits.
+    np.savez_compressed(RESULTS / f"gsm8k_scores_rate{int(rate*100)}_padding_v2.npz",
+                        scores=pd, poison=[r["poison"] for r in rows], order=order, ids=ids)
     for kk in (10, 20, 30, 50, 100):
         sel = set(order[:kk].tolist())
         res[f"precision_at_{kk}"] = len(sel & pidx) / kk
@@ -272,7 +288,8 @@ def main(n_train: int = 3000, top_k: int = 100, rate: float = POISON_RATE):
     print(f"    poisoned model         acc={acc0:.1%}  ASR={asr0:.1%} (loose {asr0_loose:.1%})")
     print(f"    after PD removal       acc={acc1:.1%}  ASR={asr1:.1%} (loose {asr1_loose:.1%})")
     print(f"    random-removal control acc={acc2:.1%}  ASR={asr2:.1%} (loose {asr2_loose:.1%})")
-    C.save(res, f"gsm8k_removal_rate{int(rate*100)}.json")
+    (RESULTS / f"gsm8k_removal_rate{int(rate*100)}_padding_v2.json").write_text(
+        json.dumps(res, indent=2) + "\n")
     return res
 
 

@@ -1,0 +1,13 @@
+{"job": {"source": "main_sst2_scpn_N6000_p0.05_s42_full", "method": "PD_KL", "purpose": "reproduction_control"}, "started_utc": "2026-09-26T05:05:24Z", "exit_code": 0, "seconds": 53.992127772420645}
+{"job": {"source": "main_sst2_scpn_N6000_p0.05_s42_full", "method": "base_label_NLL", "purpose": "new_ablation"}, "started_utc": "2026-09-26T05:06:18Z", "exit_code": 0, "seconds": 54.99691396392882}
+{"job": {"source": "main_sst2_scpn_N6000_p0.05_s42_full", "method": "adapted_label_confidence_posthoc", "purpose": "new_ablation"}, "started_utc": "2026-09-26T05:07:13Z", "exit_code": 0, "seconds": 67.8915531244129}
+{"job": {"source": "main_imdb_cf_N10000_p0.05_s42_full", "method": "base_label_NLL", "purpose": "new_ablation"}, "started_utc": "2026-09-26T05:08:21Z", "exit_code": 0, "seconds": 103.56426052935421}
+{"job": {"source": "main_imdb_cf_N10000_p0.05_s42_full", "method": "adapted_label_confidence_posthoc", "purpose": "new_ablation"}, "started_utc": "2026-09-26T05:10:05Z", "exit_code": 0, "seconds": 121.6163307800889}
+{"job": {"source": "main_sst2_scpn_N6000_p0.05_s43_full", "method": "base_label_NLL", "purpose": "new_ablation"}, "started_utc": "2026-09-26T05:12:06Z", "exit_code": 0, "seconds": 71.86745717935264}
+{"job": {"source": "main_sst2_scpn_N6000_p0.05_s43_full", "method": "adapted_label_confidence_posthoc", "purpose": "new_ablation"}, "started_utc": "2026-09-26T05:13:18Z", "exit_code": 0, "seconds": 69.03475247696042}
+{"job": {"source": "main_imdb_cf_N10000_p0.05_s43_full", "method": "base_label_NLL", "purpose": "new_ablation"}, "started_utc": "2026-09-26T05:14:27Z", "exit_code": 0, "seconds": 91.2854413613677}
+{"job": {"source": "main_imdb_cf_N10000_p0.05_s43_full", "method": "adapted_label_confidence_posthoc", "purpose": "new_ablation"}, "started_utc": "2026-09-26T05:15:59Z", "exit_code": 0, "seconds": 99.37034990079701}
+{"job": {"source": "main_sst2_scpn_N6000_p0.05_s44_full", "method": "base_label_NLL", "purpose": "new_ablation"}, "started_utc": "2026-09-26T05:17:38Z", "exit_code": 0, "seconds": 69.29602110944688}
+{"job": {"source": "main_sst2_scpn_N6000_p0.05_s44_full", "method": "adapted_label_confidence_posthoc", "purpose": "new_ablation"}, "started_utc": "2026-09-26T05:18:47Z", "exit_code": 0, "seconds": 71.05369935929775}
+{"job": {"source": "main_imdb_cf_N10000_p0.05_s44_full", "method": "base_label_NLL", "purpose": "new_ablation"}, "started_utc": "2026-09-26T05:19:58Z", "exit_code": 0, "seconds": 119.55797553434968}
+{"job": {"source": "main_imdb_cf_N10000_p0.05_s44_full", "method": "adapted_label_confidence_posthoc", "purpose": "new_ablation"}, "started_utc": "2026-09-26T05:21:58Z", "exit_code": 0, "seconds": 122.52726673521101}
