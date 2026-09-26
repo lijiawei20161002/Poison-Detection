@@ -53,3 +53,6 @@ Thumbs.db
 .env
 .env.local
 set_api_key.sh
+
+# Re-downloadable, checksum-verified input for the GSM8K audit
+rebuttal/cache/gsm8k_train_audit.jsonl
