@@ -120,10 +120,11 @@ it does not add a research-only restriction to the MIT license.
 ## Submission documents
 
 `output/pdf/artifact_statement.pdf` is the numbered supplemental statement.
-`docs/artifact_statement.md` is its source. Sections S1-S5 cover B2-B6 respectively.
-The exact checklist wording matters: for the release-only privacy/content
-questions, N/A can be justified by the scoped distribution, while S2/S3 still
-disclose the checks and mitigation. See `docs/CHECKLIST.md`.
+`docs/artifact_statement.md` is its source.
+For the current ARR questions, S1 supports B2; S1 and S3 support B3;
+S2 and S3 support B4; S4 supports B5; and S5 supports B6.
+When using the integrated manuscript, cite Appendix F.1-F.5 as
+specified in docs/CHECKLIST.md.
 
 The existing manuscript's Appendix A/F statements about released row IDs and
 per-example artifacts describe the historical research artifact. The supplemental
