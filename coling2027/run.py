@@ -148,7 +148,16 @@ def main():
     ap.add_argument("--remove", default="", help="Comma-separated score names, random, oracle")
     ap.add_argument("--budget", type=float, default=.05)
     ap.add_argument("--tag", default="main")
+    ap.add_argument("--without-released-zscore", action="store_true",
+                    help="Omit the license-pending historical baseline; requires a new --tag")
     args = ap.parse_args()
+    if args.without_released_zscore:
+        if args.tag in ("main", "pilot"):
+            ap.error("Use a separate --tag (for example codeonly) when omitting a historical baseline")
+        if "ZScore_released_unigram" in args.remove.split(","):
+            ap.error("The omitted Z-Score baseline cannot select a removal arm")
+    # Fail before downloads/training if the requested local-only code is absent.
+    released_z = None if args.without_released_zscore else ReleasedUnigramZScore()
     torch.set_num_threads(4)
     random.seed(args.seed)
     np.random.seed(args.seed)
@@ -181,7 +190,9 @@ def main():
         "data":data["provenance"], "hardware":torch.cuda.get_device_name(),
         "versions":{p:importlib.metadata.version(p) for p in ["torch","transformers","datasets","numpy","scipy","scikit-learn","peft"]},
         "code_sha256":{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in Path(__file__).parent.glob("*.py")},
-        "repo_commit":subprocess.check_output(["git","rev-parse","HEAD"],cwd=ROOT,text=True).strip(),
+        "repo_commit":(subprocess.run(["git","rev-parse","HEAD"],cwd=ROOT,
+                        text=True,capture_output=True).stdout.strip() or None)
+                        if (ROOT.parent / ".git").exists() else None,
         "roles":{r:len(data[r]) for r in ["train","calibration","test","triggered"]}}
     save_json(dest / "manifest.json",manifest)
     enc = {r:prepare(data[r],tok,args.max_length) for r in ["train","calibration","test","triggered"]}
@@ -210,13 +221,18 @@ def main():
     test_scores, bt, ft = compare(base,model,enc["test"],data["test"],label_ids)
     result["pd_scoring_seconds"] = time.monotonic()-score_start
     z = TokenZScore().fit([r["text"] for r in data["train"]], [r["label"] for r in data["train"]])
-    released_z = ReleasedUnigramZScore().fit([r["text"] for r in data["train"]], [r["label"] for r in data["train"]])
+    if released_z is not None:
+        released_z.fit([r["text"] for r in data["train"]], [r["label"] for r in data["train"]])
     for role,s in [("train",train_scores),("calibration",cal_scores),("test",test_scores)]:
         s["ZScore_token"] = z.score([r["text"] for r in data[role]],[r["label"] for r in data[role]])
-        s["ZScore_released_unigram"] = released_z.score([r["text"] for r in data[role]],[r["label"] for r in data[role]])
+        if released_z is not None:
+            s["ZScore_released_unigram"] = released_z.score([r["text"] for r in data[role]],[r["label"] for r in data[role]])
     ids = [r["id"] for r in data["train"]]
     poison = np.array([r["is_poison"] for r in data["train"]])
-    result["released_zscore_20sigma"] = confusion(poison,train_scores["ZScore_released_unigram"]>20)
+    if released_z is not None:
+        result["released_zscore_20sigma"] = confusion(poison,train_scores["ZScore_released_unigram"]>20)
+    else:
+        result["omitted_baselines"] = {"ZScore_released_unigram": "implementation excluded pending upstream permission"}
     for name, s in train_scores.items():
         result["detection"][name] = evaluate(s,poison,ids)
         result["calibration"][name] = {}

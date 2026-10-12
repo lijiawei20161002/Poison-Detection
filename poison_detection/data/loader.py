@@ -65,7 +65,11 @@ class DataLoader:
         """
         self.data_path = Path(data_path)
         if not self.data_path.exists():
-            raise FileNotFoundError(f"Data file not found: {self.data_path}")
+            raise FileNotFoundError(
+                f"Data file not found: {self.data_path}. The public release "
+                "does not bundle datasets. See docs/DATA.md for sources, "
+                "local input format, and historical reproduction limits."
+            )
 
     def load(self) -> List[DataSample]:
         """

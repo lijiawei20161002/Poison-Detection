@@ -56,3 +56,26 @@ set_api_key.sh
 
 # Re-downloadable, checksum-verified input for the GSM8K audit
 rebuttal/cache/gsm8k_train_audit.jsonl
+
+# Local research artifacts. Verify commits with scripts/verify_repository.py.
+# Ignore rules alone do not remove data from existing commits or the Git index.
+/data/
+/cache/
+/results/
+/experiments/results/
+/rebuttal/cache/
+/rebuttal/results/
+/coling2027/results/
+/coling2027/removal_controls/results/
+/coling2027/summary/
+**/external/
+**/_restricted_*.py
+*.jsonl
+*.jsonl.gz
+*.npy
+*.npz
+/tmp/
+/output/*
+!/output/pdf/
+/output/pdf/*
+!/output/pdf/artifact_statement.pdf

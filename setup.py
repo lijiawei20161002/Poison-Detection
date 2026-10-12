@@ -16,6 +16,8 @@ if readme_path.exists():
 setup(
     name="poison_detection",
     version="1.0.0",
+    license="MIT",
+    license_files=("LICENSE", "THIRD_PARTY_NOTICES.md"),
     author="Anonymous",
     description="A toolkit for detecting poisoned data in instruction-tuned language models",
     long_description=long_description,

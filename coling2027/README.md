@@ -1,5 +1,13 @@
 # COLING 2027 additional experiments
 
+**Public repository scope:** raw records, row-level outputs and checkpoints are
+excluded. See [data documentation](../docs/DATA.md) and
+[third-party notices](../THIRD_PARTY_NOTICES.md). The historical released
+unigram Z-Score translation is retained only in a separate private archive pending
+upstream permission. The full suite below requires that archived implementation;
+the public PD-only invocation
+with an explicit omission flag and a new run tag is in `docs/DATA.md`.
+
 This directory contains **new runs**, separate from `rebuttal/results/`. Do not
 replace the old paper numbers with these numbers without changing the setting.
 The suite uses instruction-prompted **google/flan-t5-small**, an H100 80 GB,
@@ -130,10 +138,12 @@ uses the unmodified versions of all examples, which differs from removing them.
 
 ## Artifacts and boundaries
 
-Each `results/<run>/` contains manifests, compressed row-level data, scores and
+In the local research archive, each `results/<run>/` contains manifests, compressed row-level data, scores and
 label logits, clean/triggered predictions, training loss histories, confusion
 counts, calibration thresholds, and removal outcomes/predictions. Local victim
 checkpoints are in ignored `checkpoints/`; raw data are public-source reviews.
+These records are not part of the code-only export. Public accessibility is
+not treated as proof of redistribution rights or absence of personal information.
 The summary is regenerated only from completed `result.json` records.
 
 These runs do not establish canonical LISM/BGMAttack coverage, 7B-scale

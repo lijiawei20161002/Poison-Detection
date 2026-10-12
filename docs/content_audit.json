@@ -1,0 +1,21 @@
+{
+  "review_date": "2026-10-12",
+  "scope": "two specified local clean-training pools only",
+  "method": "case-insensitive profanity keywords and an email-shaped regular expression",
+  "limitations": "Candidate flags only; not adjudicated PII, a toxicity classifier, or a full-corpus audit. Names, addresses, obfuscations and contextual harms may be missed.",
+  "release_mitigation": "Exclude all raw/rewritten examples, prompt caches, row-level outputs and unsanitized Git history from the public repository; retain only aggregate counts.",
+  "samples": [
+    {
+      "source": "coling2027/results/main_imdb_cf_N10000_p0.05_s42_full/clean_train.jsonl.gz",
+      "rows": 10000,
+      "email_pattern_candidate_rows": 7,
+      "profanity_keyword_candidate_rows": 49
+    },
+    {
+      "source": "coling2027/results/main_sst2_scpn_N6000_p0.05_s42_full/clean_train.jsonl.gz",
+      "rows": 6000,
+      "email_pattern_candidate_rows": 0,
+      "profanity_keyword_candidate_rows": 0
+    }
+  ]
+}

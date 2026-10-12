@@ -1,0 +1,14 @@
+# Defense in depth; scripts/verify_repository.py checks the index and history.
+*.pdf binary
+/data export-ignore
+/cache export-ignore
+/results export-ignore
+/experiments/results export-ignore
+/rebuttal/cache export-ignore
+/rebuttal/results export-ignore
+/coling2027/results export-ignore
+/coling2027/removal_controls/results export-ignore
+/coling2027/summary export-ignore
+**/_restricted_*.py export-ignore
+**/external export-ignore
+/tmp export-ignore
